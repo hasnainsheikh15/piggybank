@@ -1,0 +1,12 @@
+{
+  "name": "piggybank",
+  "version": "1.0.0",
+  "description": "a piggy bank backend ",
+  "license": "ISC",
+  "author": "Hasnain Sheikh",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
