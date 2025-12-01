@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
+import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 const userSchema = new mongoose.Schema({
     name: {
@@ -13,14 +13,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         lowercase: true,
-        unique: true,
+        // unique: true,
         trim: true
     },
 
     phone: {
         type: String,
         required: true,
-        unique: true,
+        // unique: true,
         trim: true
     }
     ,
@@ -80,21 +80,22 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
     try {
-        if (!this.isModified("password")) return next();
+        if (!this.isModified("password")) return 
 
         this.password = await bcrypt.hash(this.password, 10);
-        return next();
+        
     } catch (error) {
-        return next(error)
+        throw error;
+         
     }
 })
 
 userSchema.methods.comparePassword = async function (password) {
     return await bcrypt.compare(password, this.password);
 }
-userSchema.pre("save", function (next) {
+userSchema.pre("save",  function (next) {
     const date = new Date();
     const dob = new Date(this.dob)
 
@@ -108,9 +109,10 @@ userSchema.pre("save", function (next) {
     }
 
     if (age < 16) {
-        return next(new Error("User must be at least 16 years old."))
+         return next(new Error("User must be at least 16 years old")); 
     }
-    next();
+    // console.log(typeof next);
+    // next();
 })
 
 userSchema.methods.generateAccessToken = function () {

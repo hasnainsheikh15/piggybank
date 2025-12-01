@@ -5,8 +5,8 @@ const refreshTokenSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
-        index: true
-    },
+        // index: true
+    }, 
     hashToken: {
         type: String,
         required: true
@@ -25,7 +25,7 @@ const refreshTokenSchema = new mongoose.Schema({
     expiresAt: {
         type: Date,
         required: true,
-        index: true
+        // index: true
     },
     isRevoked: {
         type: Boolean,
@@ -34,7 +34,7 @@ const refreshTokenSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 // compound inidexing 
-refreshTokenSchema.index({expiresA : 1},{expireAfterSeconds : 0})
+refreshTokenSchema.index({expiresAt : 1},{expireAfterSeconds : 0})
 
 //TTL indexing for the refreshToken 
 refreshTokenSchema.index({user : 1},{hashToken : 1})
