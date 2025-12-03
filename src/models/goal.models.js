@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const goalSchema = new mongoose.Schema({
     user: {
@@ -38,5 +39,19 @@ const goalSchema = new mongoose.Schema({
         required: true
     }
 }, { timestamps: true })
+
+goalSchema.methods.isGoalAchieved = function() {
+    return this.currentAmount >= this.targetAmount;
+}
+
+goalSchema.statics.getActiveGoals = function(userId) {
+    return this.find({user : userId , status : "active"});
+}
+
+goalSchema.index({user : 1})
+
+// for pagination of the goal list
+goalSchema.plugin(mongoosePaginate)
+
 
 export const Goal = mongoose.model("Goal", goalSchema)

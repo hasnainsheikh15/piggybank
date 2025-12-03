@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PiggyBank Payment</title>
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+</head>
+<body>
+
+<button id="payBtn">Deposit Money</button>
+
+<script>
+    document.getElementById("payBtn").onclick = async () => {
+
+        console.log("window.cashfree =", window.cashfree);
+        console.log("window.Cashfree =", window.Cashfree);
+
+        if (!window.Cashfree) {
+            alert("Cashfree SDK failed to load");
+            return;
+        }
+
+        // const cashfree = window.Cashfree;
+
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTJkZDE1MGJkMDYwY2EzNWIwNmU2NDgiLCJlbWFpbCI6Im1kaGFzbmFpbnNoZWlraDE1QGdtYWlsLmNvbSIsImlhdCI6MTc2NDc4MzA5MywiZXhwIjoxNzY0ODY5NDkzfQ.IWo9sHT0gmV7bBVwsSRwvwv7qX7-WfVPSICE2BDQGJM";
+
+        const response = await fetch("http://localhost:3000/api/v1/pb/goal/deposit", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                amount: 1000,
+                name: "Hasnain",
+                email: "test@example.com",
+                phone: "9999999999"
+            })
+        });
+
+        const result = await response.json();
+        const paymentSessionId = result?.data?.paymentSessionId;
+
+        if (!paymentSessionId) {
+            alert("Error creating order");
+            return;
+        }
+
+        const cashfree = Cashfree({
+            mode: "sandbox"                  // IMPORTANT
+        });
+
+        // 3️⃣ Trigger checkout
+        await cashfree.checkout({
+            paymentSessionId: paymentSessionId,
+            redirectTarget: "_self"          // opens checkout in same tab
+        });
+    };
+</script>
+
+
+</body>
+</html>

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const transactionSchema = new mongoose.Schema({
     user: {
@@ -43,9 +44,28 @@ const transactionSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    orderId : {
+        type : String,
+        required : true,
+        index : true
     }
 
 
 }, { timestamps: true })
 
+transactionSchema.methods.markSuccess = function() {
+    this.status = "success"
+    return this.save()
+}
+
+transactionSchema.methods.markFailed = function() {
+    this.status = "failed"
+    return this.save()
+}
+
+transactionSchema.index({user : 1});
+transactionSchema.index({goal : 1});
+transactionSchema.index({wallet : 1});
+transactionSchema.plugin(mongoosePaginate)
 export const Transaction = mongoose.model("Transaction", transactionSchema);
