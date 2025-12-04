@@ -19,6 +19,7 @@ import paymentRouter from "./routes/payment.routes.js";
 app.use("/api/v1/pb/users",userRouter)
 app.use("/api/v1/pb/goal",goalRouter)
 app.use("/api/payment",paymentRouter)
+app.use("/api/payment",paymentRouter)
 
 app.post("/payment/callback", (req,res) => {
     return res.send("Payment completed, you can close this tab..")

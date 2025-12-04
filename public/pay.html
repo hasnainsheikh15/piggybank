@@ -21,9 +21,11 @@
 
         // const cashfree = window.Cashfree;
 
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTJkZDE1MGJkMDYwY2EzNWIwNmU2NDgiLCJlbWFpbCI6Im1kaGFzbmFpbnNoZWlraDE1QGdtYWlsLmNvbSIsImlhdCI6MTc2NDc4MzA5MywiZXhwIjoxNzY0ODY5NDkzfQ.IWo9sHT0gmV7bBVwsSRwvwv7qX7-WfVPSICE2BDQGJM";
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTJkZDE1MGJkMDYwY2EzNWIwNmU2NDgiLCJlbWFpbCI6Im1kaGFzbmFpbnNoZWlraDE1QGdtYWlsLmNvbSIsImlhdCI6MTc2NDg0NjMxMywiZXhwIjoxNzY0OTMyNzEzfQ.6npovBjpSYGyTgyygZoLw6oOqtcMGjrPX00hxkUi_Eo";
 
-        const response = await fetch("http://localhost:3000/api/v1/pb/goal/deposit", {
+        const goalId = "69316c6d076f12eba9df6ff1"
+
+        const response = await fetch(`http://localhost:3000/api/v1/pb/goal/deposit/${goalId}`, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",

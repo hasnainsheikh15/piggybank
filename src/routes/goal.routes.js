@@ -10,6 +10,6 @@ const goalRouter = Router()
 goalRouter.post("/createGoal",verifyJWT,createGoal)
 goalRouter.get("/getGoals",verifyJWT,getGoals)
 goalRouter.delete("/deletGoal/:goalId",verifyJWT,deleteGoal)
-goalRouter.post("/deposit",verifyJWT,depositMoney)
+goalRouter.post("/deposit/:goalId",verifyJWT,depositMoney)
 
 export default goalRouter

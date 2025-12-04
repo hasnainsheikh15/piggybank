@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { cashfreeWebhook } from "../controllers/payment.controller.js";
+import express from "express"
 
 const paymentRouter = Router();
 
@@ -11,5 +13,7 @@ paymentRouter.get("/return",(req,res) => {
         <p> OrderID : ${order_id}</p>`
     )
 })
+
+paymentRouter.post("/webhook",express.json(),cashfreeWebhook)
 
 export default paymentRouter
