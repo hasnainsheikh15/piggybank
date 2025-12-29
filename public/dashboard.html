@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | PiggyBank</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== CUSTOM CURSOR ===== */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #facc15;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease, width 0.2s ease, height 0.2s ease, border-color 0.2s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-dot {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(135deg, #facc15, #eab308);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.6), 0 0 40px rgba(250, 204, 21, 0.3);
+        }
+
+        .cursor-trail {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: rgba(250, 204, 21, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease;
+        }
+
+        .cursor.hover {
+            width: 50px;
+            height: 50px;
+            border-color: #eab308;
+            background: rgba(250, 204, 21, 0.1);
+        }
+
+        .cursor-glow {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(250, 204, 21, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cursor-glow.active {
+            opacity: 1;
+        }
+
+        /* ===== PARTICLE CANVAS ===== */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .navbar,
+        .dashboard-container,
+        .mobile-nav {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== TOP NAVIGATION ===== */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 32px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #facc15, #eab308);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .greeting {
+            color: #b5b5b5;
+            font-size: 0.95rem;
+        }
+
+        .greeting strong {
+            color: #ffffff;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+
+        .notification-btn:hover {
+            background: rgba(250, 204, 21, 0.1);
+            border-color: rgba(250, 204, 21, 0.3);
+        }
+
+        .notification-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #b5b5b5;
+        }
+
+        .info-value.unverified {
+    color: #ef4444;
+}
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(135deg, #facc15, #eab308);
+            border-radius: 50%;
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #facc15, #eab308);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #0a0a0a;
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+
+        .user-avatar:hover {
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        /* ===== GLASS CARD BASE ===== */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(250, 204, 21, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(250, 204, 21, 0.08);
+        }
+
+        /* ===== DASHBOARD GRID ===== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 350px;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        /* ===== WALLET BALANCE CARD ===== */
+        .wallet-card {
+            grid-column: span 2;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wallet-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(250, 204, 21, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .wallet-label {
+            color: #b5b5b5;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .wallet-balance {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff, #b5b5b5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .wallet-balance .currency {
+            font-size: 2rem;
+            opacity: 0.7;
+        }
+
+        .wallet-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #22c55e;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .wallet-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn-ghost {
+            padding: 14px 32px;
+            border: 2px solid rgba(250, 204, 21, 0.5);
+            background: transparent;
+            color: #facc15;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-ghost::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #facc15, #eab308);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn-ghost:hover {
+            color: #0a0a0a;
+            border-color: #facc15;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.3);
+        }
+
+        .btn-ghost:hover::before {
+            opacity: 1;
+        }
+
+        .btn-secondary {
+            padding: 14px 32px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* ===== USER INFO CARD ===== */
+        .user-info-card {
+            padding: 28px;
+        }
+
+        .user-info-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .user-info-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #facc15, #eab308);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #0a0a0a;
+        }
+
+        .user-info-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .user-info-email {
+            color: #b5b5b5;
+            font-size: 0.85rem;
+        }
+
+        .user-info-details {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #b5b5b5;
+            font-size: 0.85rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .info-value.verified {
+            color: #22c55e;
+        }
+
+        /* ===== QUICK ACTIONS ===== */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .action-btn {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            cursor: none;
+        }
+
+        .action-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: rgba(250, 204, 21, 0.1);
+            border: 1px solid rgba(250, 204, 21, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover .action-icon {
+            background: linear-gradient(135deg, #facc15, #eab308);
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.3);
+        }
+
+        .action-label {
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* ===== BOTTOM GRID ===== */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* ===== SAVINGS GOALS ===== */
+        .goals-section {
+            padding: 28px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .see-all {
+            color: #facc15;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            cursor: none;
+        }
+
+        .see-all:hover {
+            text-decoration: underline;
+        }
+
+        .goals-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .goal-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s ease;
+            cursor: none;
+        }
+
+        .goal-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(250, 204, 21, 0.2);
+            transform: translateX(4px);
+        }
+
+        .goal-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(250, 204, 21, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .goal-info {
+            flex: 1;
+        }
+
+        .goal-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .goal-amount {
+            color: #b5b5b5;
+            font-size: 0.85rem;
+        }
+
+        .goal-progress-container {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .goal-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .goal-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #facc15, #eab308);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .goal-percentage {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #facc15;
+        }
+
+        /* ===== TRANSACTIONS ===== */
+        .transactions-section {
+            padding: 28px;
+        }
+
+        .transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: none;
+        }
+
+        .transaction-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .transaction-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .transaction-icon.credit {
+            background: rgba(34, 197, 94, 0.15);
+        }
+
+        .transaction-icon.debit {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .transaction-date {
+            color: #b5b5b5;
+            font-size: 0.8rem;
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .transaction-amount.credit {
+            color: #22c55e;
+        }
+
+        .transaction-amount.debit {
+            color: #ef4444;
+        }
+
+        /* ===== ANALYTICS MINI CHART ===== */
+        .analytics-section {
+            grid-column: span 2;
+            padding: 28px;
+        }
+
+        .chart-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 180px;
+            padding: 20px 0;
+            gap: 12px;
+        }
+
+        .chart-bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .chart-bar {
+            width: 100%;
+            max-width: 50px;
+            border-radius: 8px 8px 0 0;
+            background: linear-gradient(180deg, #facc15, #eab308);
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: none;
+        }
+
+        .chart-bar:hover {
+            box-shadow: 0 -10px 30px rgba(250, 204, 21, 0.3);
+            transform: scaleY(1.05);
+            transform-origin: bottom;
+        }
+
+        .chart-bar::before {
+            content: attr(data-value);
+            position: absolute;
+            top: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #b5b5b5;
+            font-size: 0.75rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .chart-bar:hover::before {
+            opacity: 1;
+            color: #facc15;
+        }
+
+        .chart-label {
+            color: #b5b5b5;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* ===== MOBILE RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .wallet-card {
+                grid-column: span 2;
+            }
+
+            .user-info-card {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .navbar {
+                padding: 12px 20px;
+            }
+
+            .greeting {
+                display: none;
+            }
+
+            .dashboard-container {
+                padding: 20px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wallet-card,
+            .user-info-card {
+                grid-column: span 1;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .analytics-section {
+                grid-column: span 1;
+            }
+
+            .wallet-balance {
+                font-size: 2.5rem;
+            }
+
+            .wallet-actions {
+                flex-direction: column;
+            }
+
+            .btn-ghost,
+            .btn-secondary {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            /* Hide custom cursor on mobile/touch devices */
+            .cursor,
+            .cursor-dot,
+            .cursor-trail,
+            .cursor-glow {
+                display: none !important;
+            }
+
+            * {
+                cursor: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 12px 16px;
+            }
+
+            .logo-text {
+                font-size: 1.2rem;
+            }
+
+            .logo svg {
+                width: 32px;
+                height: 32px;
+            }
+
+            .dashboard-container {
+                padding: 16px;
+            }
+
+            .wallet-card,
+            .goals-section,
+            .transactions-section,
+            .analytics-section {
+                padding: 20px;
+            }
+
+            .wallet-balance {
+                font-size: 2rem;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .action-btn {
+                padding: 16px;
+            }
+
+            .action-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.2rem;
+            }
+
+            .chart-container {
+                height: 140px;
+            }
+        }
+
+        /* ===== MOBILE BOTTOM NAV ===== */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            padding: 12px 0;
+            z-index: 100;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex;
+                justify-content: space-around;
+            }
+
+            .dashboard-container {
+                padding-bottom: 100px;
+            }
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #b5b5b5;
+            text-decoration: none;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+            cursor: none;
+        }
+
+        .mobile-nav-item.active,
+        .mobile-nav-item:hover {
+            color: #facc15;
+        }
+
+        .mobile-nav-item svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .mobile-nav-item.active svg {
+            fill: #facc15;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Custom Cursor Elements -->
+    <div class="cursor"></div>
+    <div class="cursor-dot"></div>
+    <div class="cursor-glow"></div>
+
+    <!-- Particle Canvas -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Top Navigation -->
+    <nav class="navbar">
+        <div class="logo">
+            <svg class="pig-icon" width="40" height="40" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <!-- Main body gradient -->
+                    <linearGradient id="pigBodyGradient" x1="10" y1="15" x2="70" y2="65" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#fef9c3" />
+                        <stop offset="0.3" stop-color="#facc15" />
+                        <stop offset="1" stop-color="#ca8a04" />
+                    </linearGradient>
+
+                    <!-- Belly / underside gradient -->
+                    <linearGradient id="pigBellyGradient" x1="20" y1="40" x2="60" y2="70"
+                        gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#eab308" />
+                        <stop offset="1" stop-color="#854d0e" />
+                    </linearGradient>
+
+                    <!-- Snout gradient -->
+                    <linearGradient id="pigSnoutGradient" x1="30" y1="45" x2="50" y2="60"
+                        gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#fef3c7" />
+                        <stop offset="1" stop-color="#facc15" />
+                    </linearGradient>
+
+                    <!-- Leg gradient -->
+                    <linearGradient id="pigLegGradient" x1="0" y1="0" x2="0" y2="10" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#facc15" />
+                        <stop offset="1" stop-color="#854d0e" />
+                    </linearGradient>
+
+                    <!-- Coin gradient -->
+                    <linearGradient id="coinGradient" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#fef9c3" />
+                        <stop offset="0.4" stop-color="#facc15" />
+                        <stop offset="1" stop-color="#b45309" />
+                    </linearGradient>
+
+                    <!-- Soft drop shadow -->
+                    <filter id="pigShadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="black" flood-opacity="0.45" />
+                    </filter>
+
+                    <!-- Eye shine gradient -->
+                    <radialGradient id="eyeHighlight" cx="0.3" cy="0.3" r="0.7">
+                        <stop offset="0" stop-color="#ffffff" stop-opacity="0.9" />
+                        <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+                    </radialGradient>
+                </defs>
+
+                <!-- Ground shadow ellipse -->
+                <ellipse cx="40" cy="64" rx="22" ry="6" fill="black" opacity="0.25" />
+
+                <!-- Pig body group with shadow -->
+                <g filter="url(#pigShadow)">
+                    <!-- Main body -->
+                    <ellipse cx="40" cy="40" rx="22" ry="17" fill="url(#pigBodyGradient)" />
+
+                    <!-- Belly shading -->
+                    <ellipse cx="40" cy="44" rx="18" ry="12" fill="url(#pigBellyGradient)" opacity="0.55" />
+
+                    <!-- Left ear -->
+                    <path d="M26 20 C24 16, 26 12, 30 13 C34 14, 35 18, 33 21 Z" fill="#facc15" stroke="#854d0e"
+                        stroke-width="0.7" />
+                    <!-- Right ear -->
+                    <path d="M54 20 C56 16, 54 12, 50 13 C46 14, 45 18, 47 21 Z" fill="#facc15" stroke="#854d0e"
+                        stroke-width="0.7" />
+
+                    <!-- Left cheek bulge -->
+                    <ellipse cx="22" cy="38" rx="6" ry="8" fill="#facc15" />
+                    <!-- Right cheek bulge -->
+                    <ellipse cx="58" cy="38" rx="6" ry="8" fill="#facc15" />
+
+                    <!-- Snout -->
+                    <ellipse cx="40" cy="47" rx="10" ry="7" fill="url(#pigSnoutGradient)" stroke="#854d0e"
+                        stroke-width="0.8" />
+                    <!-- Nostrils -->
+                    <circle cx="36.5" cy="47" r="1.4" fill="#1a1a1a" opacity="0.85" />
+                    <circle cx="43.5" cy="47" r="1.4" fill="#1a1a1a" opacity="0.85" />
+
+                    <!-- Eye -->
+                    <circle cx="31" cy="36" r="3.2" fill="#111111" />
+                    <!-- Eye highlight -->
+                    <circle cx="30.3" cy="35.3" r="1.3" fill="url(#eyeHighlight)" />
+
+                    <!-- Smile / mouth -->
+                    <path d="M34 51 C37 54, 43 54, 46 51" fill="none" stroke="#1a1a1a" stroke-width="1.2"
+                        stroke-linecap="round" />
+
+                    <!-- Back slot for coins -->
+                    <rect x="32" y="25" width="16" height="3" rx="1.5" fill="#111827" opacity="0.9" />
+                    <!-- Highlight on slot -->
+                    <rect x="33" y="25.3" width="6" height="1.2" rx="0.6" fill="#fef9c3" opacity="0.4" />
+
+                    <!-- Front leg -->
+                    <rect x="29" y="51" width="6" height="9" rx="2" fill="url(#pigLegGradient)" />
+                    <!-- Back leg -->
+                    <rect x="45" y="51" width="6" height="9" rx="2" fill="url(#pigLegGradient)" />
+
+                    <!-- Tiny highlight on body (top left) -->
+                    <ellipse cx="32" cy="32" rx="10" ry="7" fill="#fef9c3" opacity="0.22" />
+                </g>
+
+                <!-- Coins coming out of slot -->
+                <g>
+                    <!-- Coin 1 -->
+                    <circle cx="52" cy="18" r="5" fill="url(#coinGradient)" />
+                    <circle cx="52" cy="18" r="5" fill="none" stroke="#fef9c3" stroke-width="0.5" opacity="0.5" />
+                    <!-- Coin 2 -->
+                    <circle cx="46" cy="10" r="4" fill="url(#coinGradient)" opacity="0.9" />
+                    <!-- Coin 3 (behind) -->
+                    <circle cx="57" cy="11" r="3.5" fill="url(#coinGradient)" opacity="0.7" />
+                </g>
+            </svg>
+            <span class="logo-text">PiggyBank</span>
+        </div>
+
+        <div class="nav-right">
+            <span class="greeting">Welcome back, <strong></strong></span>
+            <button class="notification-btn">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                <span class="notification-badge"></span>
+            </button>
+            <div class="user-avatar"></div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard-container">
+        <!-- Top Grid: Wallet + User Info -->
+        <div class="dashboard-grid">
+            <!-- Wallet Balance Card -->
+            <div class="glass-card wallet-card">
+                <p class="wallet-label">Total Balance</p>
+                <h1 class="wallet-balance"><span class="currency">₹</span>0</h1>
+                <div class="wallet-change">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 15l-6-6-6 6" />
+                    </svg>
+                    +₹0 this month
+                </div>
+                <div class="wallet-actions">
+                    <button class="btn-ghost">+ Add Money</button>
+                    <button class="btn-secondary">Withdraw</button>
+                </div>
+            </div>
+
+            <!-- User Info Card -->
+            <!-- User Info Card -->
+            <div class="glass-card user-info-card">
+                <div class="user-info-header">
+                    <div class="user-info-avatar dynamic-avatar"></div>
+                    <div>
+                        <h3 class="user-info-name dynamic-name"></h3>
+                        <p class="user-info-email dynamic-email"></p>
+                    </div>
+                </div>
+
+                <div class="user-info-details">
+                    <div class="info-row">
+                        <span class="info-label">Phone</span>
+                        <span class="info-value user-phone-value"></span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Member Since</span>
+                        <span class="info-value user-member-since"></span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Status</span>
+                        <span class="info-value verified"></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="#" class="glass-card action-btn">
+                <div class="action-icon">💰</div>
+                <span class="action-label">Add Money</span>
+            </a>
+            <a href="#" class="glass-card action-btn">
+                <div class="action-icon">🏧</div>
+                <span class="action-label">Withdraw</span>
+            </a>
+            <a href="#" class="glass-card action-btn">
+                <div class="action-icon">🎯</div>
+                <span class="action-label">Create Goal</span>
+            </a>
+            <a href="#" class="glass-card action-btn">
+                <div class="action-icon">📊</div>
+                <span class="action-label">Analytics</span>
+            </a>
+        </div>
+
+        <!-- Bottom Grid: Goals + Transactions -->
+        <div class="bottom-grid">
+            <!-- Savings Goals -->
+            <div class="glass-card goals-section">
+                <div class="section-header">
+                    <h2 class="section-title">Savings Goals</h2>
+                    <a href="#" class="see-all">See All →</a>
+                </div>
+                <div class="goals-grid"></div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="glass-card transactions-section">
+                <div class="section-header">
+                    <h2 class="section-title">Recent Transactions</h2>
+                    <a href="#" class="see-all">See All →</a>
+                </div>
+                <div class="transactions-list"></div>
+            </div>
+
+            <!-- Analytics Mini Chart -->
+            <div class="glass-card analytics-section">
+                <div class="section-header">
+                    <h2 class="section-title">Monthly Savings</h2>
+                    <a href="#" class="see-all">View Details →</a>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-bar-group">
+                        <div class="chart-bar"></div>
+                        <span class="chart-label"></span>
+                    </div>
+                    <div class="chart-bar-group">
+                        <div class="chart-bar"></div>
+                        <span class="chart-label"></span>
+                    </div>
+                    <div class="chart-bar-group">
+                        <div class="chart-bar"></div>
+                        <span class="chart-label"></span>
+                    </div>
+                    <div class="chart-bar-group">
+                        <div class="chart-bar"></div>
+                        <span class="chart-label"></span>
+                    </div>
+                    <div class="chart-bar-group">
+                        <div class="chart-bar"></div>
+                        <span class="chart-label"></span>
+                    </div>
+                    <div class="chart-bar-group">
+                        <div class="chart-bar"></div>
+                        <span class="chart-label"></span>
+                    </div>
+                </div>
+                <div class="analytics-lists"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <a href="#" class="mobile-nav-item active">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            </svg>
+            <span>Home</span>
+        </a>
+        <a href="#" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+            </svg>
+            <span>Goals</span>
+        </a>
+        <a href="#" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+            </svg>
+            <span>History</span>
+        </a>
+        <a href="#" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <!-- Particle Effect Script -->
+    <script>
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 80;
+        const mouse = { x: null, y: null, radius: 150 };
+
+        // Particle class
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 3 + 1;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = Math.random() * 30 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                // Yellow gradient colors
+                const colors = [
+                    'rgba(250, 204, 21,',   // #facc15
+                    'rgba(234, 179, 8,',    // #eab308
+                    'rgba(253, 224, 71,',   // lighter yellow
+                    'rgba(202, 138, 4,'     // darker yellow
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color + this.opacity + ')';
+                ctx.fill();
+
+                // Glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = 'rgba(250, 204, 21, 0.5)';
+            }
+
+            update() {
+                // Default floating animation
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Wrap around edges
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+                if (this.y > height) this.y = 0;
+                if (this.y < 0) this.y = height;
+
+                // Mouse interaction
+                if (mouse.x !== null && mouse.y !== null) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < mouse.radius) {
+                        const forceDirectionX = dx / distance;
+                        const forceDirectionY = dy / distance;
+                        const maxDistance = mouse.radius;
+                        const force = (maxDistance - distance) / maxDistance;
+                        const directionX = forceDirectionX * force * this.density * 0.6;
+                        const directionY = forceDirectionY * force * this.density * 0.6;
+
+                        this.x -= directionX;
+                        this.y -= directionY;
+
+                        // Increase opacity when near cursor
+                        this.opacity = Math.min(0.9, this.opacity + 0.02);
+                    } else {
+                        // Fade back to normal opacity
+                        if (this.opacity > 0.2) {
+                            this.opacity -= 0.01;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Initialize particles
+        function init() {
+            particles.length = 0;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        // Draw connecting lines between nearby particles
+        function connectParticles() {
+            for (let a = 0; a < particles.length; a++) {
+                for (let b = a + 1; b < particles.length; b++) {
+                    const dx = particles[a].x - particles[b].x;
+                    const dy = particles[a].y - particles[b].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 120) {
+                        const opacity = 1 - distance / 120;
+                        ctx.strokeStyle = 'rgba(250, 204, 21,' + opacity * 0.2 + ')';
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].draw();
+                particles[i].update();
+            }
+
+            connectParticles();
+            requestAnimationFrame(animate);
+        }
+
+        // Event listeners
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        window.addEventListener('mouseout', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            init();
+        });
+
+        // Touch support for mobile
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                mouse.x = e.touches[0].clientX;
+                mouse.y = e.touches[0].clientY;
+            }
+        });
+
+        window.addEventListener('touchend', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        // Start animation
+        init();
+        animate();
+    </script>
+
+    <!-- Custom Cursor Script -->
+    <script>
+        // Custom Cursor Animation
+        const cursor = document.querySelector('.cursor');
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorGlow = document.querySelector('.cursor-glow');
+
+        // Trail particles
+        const trailParticles = [];
+        const maxTrailParticles = 15;
+
+        let mouseX = 0;
+        let mouseY = 0;
+        let cursorX = 0;
+        let cursorY = 0;
+        let dotX = 0;
+        let dotY = 0;
+        let isMoving = false;
+        let moveTimeout;
+
+        // Create trail particle
+        function createTrailParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.className = 'cursor-trail';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            document.body.appendChild(particle);
+
+            trailParticles.push({
+                element: particle,
+                x: x,
+                y: y,
+                life: 1,
+                size: Math.random() * 4 + 2
+            });
+
+            // Limit trail particles
+            if (trailParticles.length > maxTrailParticles) {
+                const oldParticle = trailParticles.shift();
+                if (oldParticle.element.parentNode) {
+                    oldParticle.element.parentNode.removeChild(oldParticle.element);
+                }
+            }
+        }
+
+        // Update trail particles
+        function updateTrailParticles() {
+            for (let i = trailParticles.length - 1; i >= 0; i--) {
+                const particle = trailParticles[i];
+                particle.life -= 0.03;
+                particle.size *= 0.95;
+
+                if (particle.life <= 0) {
+                    if (particle.element.parentNode) {
+                        particle.element.parentNode.removeChild(particle.element);
+                    }
+                    trailParticles.splice(i, 1);
+                } else {
+                    particle.element.style.opacity = particle.life * 0.8;
+                    particle.element.style.width = particle.size + 'px';
+                    particle.element.style.height = particle.size + 'px';
+                }
+            }
+        }
+
+        // Mouse move handler
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            isMoving = true;
+            cursorGlow.classList.add('active');
+
+            // Create trail particles only when moving
+            if (Math.random() > 0.5) {
+                createTrailParticle(mouseX, mouseY);
+            }
+
+            clearTimeout(moveTimeout);
+            moveTimeout = setTimeout(() => {
+                isMoving = false;
+                cursorGlow.classList.remove('active');
+            }, 100);
+        });
+
+        // Hover effects for interactive elements
+        const interactiveElements = document.querySelectorAll('a, button, .glass-card, .goal-card, .transaction-item, .chart-bar');
+
+        interactiveElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.classList.add('hover');
+            });
+
+            el.addEventListener('mouseleave', () => {
+                cursor.classList.remove('hover');
+            });
+        });
+
+        // Smooth cursor animation
+        function animateCursor() {
+            // Smooth follow for outer cursor
+            const easingOuter = 0.15;
+            cursorX += (mouseX - cursorX) * easingOuter;
+            cursorY += (mouseY - cursorY) * easingOuter;
+
+            // Faster follow for dot
+            const easingDot = 0.25;
+            dotX += (mouseX - dotX) * easingDot;
+            dotY += (mouseY - dotY) * easingDot;
+
+            cursor.style.left = cursorX + 'px';
+            cursor.style.top = cursorY + 'px';
+
+            cursorDot.style.left = dotX + 'px';
+            cursorDot.style.top = dotY + 'px';
+
+            cursorGlow.style.left = mouseX + 'px';
+            cursorGlow.style.top = mouseY + 'px';
+
+            // Update trail particles
+            updateTrailParticles();
+
+            requestAnimationFrame(animateCursor);
+        }
+
+        // Hide cursor when leaving window
+        document.addEventListener('mouseleave', () => {
+            cursor.style.opacity = '0';
+            cursorDot.style.opacity = '0';
+            cursorGlow.style.opacity = '0';
+        });
+
+        document.addEventListener('mouseenter', () => {
+            cursor.style.opacity = '1';
+            cursorDot.style.opacity = '1';
+            cursorGlow.style.opacity = '1';
+        });
+
+        // Start cursor animation
+        animateCursor();
+
+    </script>
+
+    <!-- Dashboard Data Script -->
+    <script>
+        (async function () {
+            try {
+                // 1. Check token
+                const token = localStorage.getItem("accessToken");
+
+                if (!token) {
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                // 2. Fetch dashboard data
+                const res = await fetch("http://localhost:3000/api/dashboard/getUserData", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                // 3. Handle auth / server errors
+                if (!res.ok) {
+                    localStorage.removeItem("accessToken");
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                const result = await res.json();
+                const data = result.data;
+
+                // 4. Render dashboard
+                console.log("Dashboard API result:", result);
+                console.log("Dashboard data:", data);
+
+                updateUser(data.user);
+                updateWallet(data.wallet);
+                renderTransactions(data.transactions);
+                renderGoals(data.goals);
+                renderAnalytics(data.monthlyAnalytics);
+
+            } catch (error) {
+                console.error("Dashboard load failed:", error);
+                alert("Something went wrong. Please try again.");
+            }
+        })();
+
+
+        // ---------------- USER ----------------
+        function updateUser(user) {
+            const initial = user.name.charAt(0).toUpperCase();
+
+            document.querySelector(".dynamic-avatar").textContent = initial;
+            document.querySelector(".dynamic-name").textContent = user.name;
+            document.querySelector(".dynamic-email").textContent = user.email;
+            document.querySelector(".user-phone-value").textContent = user.phone;
+            document.querySelector(".user-member-since").textContent =
+                new Date(user.createdAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric"
+                });
+
+            document.querySelector(".user-avatar").textContent = initial;
+            document.querySelector(".greeting strong").textContent = user.name;
+
+            const statusEl = document.querySelector(".info-value.verified");
+
+    if (user.isVerified) {
+        statusEl.textContent = "✓ Verified";
+        statusEl.classList.add("verified");
+        statusEl.classList.remove("unverified");
+    } else {
+        statusEl.textContent = "✕ Not Verified";
+        statusEl.classList.add("unverified");
+        statusEl.classList.remove("verified");
+    }
+        }
+
+
+        // ---------------- WALLET ----------------
+        function updateWallet(wallet) {
+            document.querySelector(".wallet-balance").innerHTML =
+                `<span class="currency">₹</span>${wallet.balance.toLocaleString()}`;
+        }
+
+
+        // ---------------- TRANSACTIONS ----------------
+        function renderTransactions(transactions) {
+            const container = document.querySelector(".transactions-list");
+            container.innerHTML = "";
+
+            if (transactions.length === 0) {
+                container.innerHTML = "<p>No transactions yet</p>";
+                return;
+            }
+
+            // const container = document.querySelector(".transactions-list");
+            // container.innerHTML = "";
+
+            transactions.forEach(tx => {
+                const item = document.createElement("div");
+                item.className = "transaction-item";
+
+                item.innerHTML = `
+          <div class="transaction-icon ${tx.type}">
+            ${tx.type === "credit" ? "💵" : "🛒"}
+          </div>
+          <div class="transaction-info">
+            <h4 class="transaction-title">${tx.title}</h4>
+            <p class="transaction-date">
+              ${new Date(tx.createdAt).toDateString()}
+            </p>
+          </div>
+          <span class="transaction-amount ${tx.type}">
+            ${tx.type === "credit" ? "+" : "-"}₹${tx.amount}
+          </span>
+        `;
+
+                container.appendChild(item);
+            });
+        }
+
+
+        // ---------------- GOALS ----------------
+        function renderGoals(goals) {
+            const container = document.querySelector(".goals-grid");
+            container.innerHTML = "";
+
+            if (goals.length === 0) {
+                container.innerHTML = "<p>No goals created yet</p>";
+                return;
+            }
+
+            
+
+            goals.forEach(goal => {
+                const percent = Math.floor(
+                    (goal.currentAmount / goal.targetAmount) * 100
+                );
+
+                const card = document.createElement("div");
+                card.className = "goal-card";
+
+                card.innerHTML = `
+          <div class="goal-info">
+            <h4 class="goal-name">${goal.title}</h4>
+            <p class="goal-amount">
+              ₹${goal.currentAmount} / ₹${goal.targetAmount}
+            </p>
+            <div class="goal-progress-bar">
+              <div class="goal-progress-fill" style="width:${percent}%"></div>
+            </div>
+          </div>
+          <span class="goal-percentage">${percent}%</span>
+        `;
+
+                container.appendChild(card);
+            });
+        }
+
+
+        // ---------------- ANALYTICS ----------------
+        function renderAnalytics(analytics) {
+            const container = document.querySelector(".analytics-lists");
+            container.innerHTML = "";
+
+            if (analytics.length === 0) {
+                container.innerHTML = "<p>No analytics yet</p>";
+                return;
+            }
+
+            const bars = document.querySelectorAll(".chart-bar");
+            const labels = document.querySelectorAll(".chart-label");
+
+            if (!analytics || analytics.length === 0) {
+                bars.forEach(bar => bar.style.height = "0%");
+                labels.forEach(label => label.textContent = "");
+                return;
+            }
+
+            const totals = analytics.map(item => item.total);
+            const max = Math.max(...totals);
+
+            analytics.forEach((item, index) => {
+                const value = item.total;
+                const height = (value / max) * 100;
+
+                const date = new Date(item._id.year, item._id.month - 1);
+                const monthLabel = date.toLocaleString("en-US", { month: "short" });
+
+                bars[index].style.height = `${height}%`;
+                bars[index].dataset.value = `₹${value}`;
+                labels[index].textContent = monthLabel;
+            });
+        }
+
+    </script>
+
+
+
+
+
+
+</body>
+
+</html>

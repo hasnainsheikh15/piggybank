@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 
-const otpStoreSchema = new mongoose.Schema(
-  {
+const otpSchema = new mongoose.Schema({
     email: { type: String, required: true },
     otp: { type: String, required: true },
-    expiry: { type: Date, required: true },
-  },
-  { timestamps: true }
-);
+    expiresAt: { type: Date, required: true },
+    userData: {
+        name: { type: String },
+        phone: { type: String },
+        dob: { type: String },
+        password: { type: String }   // hashed later by User model or stored raw and hashed on create
+    }
+}, { timestamps: true });
 
-otpStoreSchema.index({ email: 1 }, { unique: true });
-
-export const OtpStore = mongoose.model("OtpStore", otpStoreSchema);
+export const OtpStore = mongoose.model("OtpStore", otpSchema);
