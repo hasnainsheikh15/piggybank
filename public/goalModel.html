@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Money to Goal - PiggyBank</title>
+    <link rel="stylesheet" href="goalModel.css">
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+
+    <script src="toast.js"></script>
+</head>
+
+<body>
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="goalModal">
+        <!-- Modal Container -->
+        <div class="modal-container">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <div class="modal-header-text">
+                    <h2 class="modal-title">Add Money to Goal</h2>
+                    <p class="modal-subtitle">Choose a goal and enter amount</p>
+                </div>
+                <button class="modal-close" id="modalClose" aria-label="Close modal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Goals List -->
+            <div class="goals-list" id="goalsList"></div>
+
+            <!-- Amount Input Section -->
+            <div class="amount-section">
+                <label class="amount-label" for="amountInput">Enter Amount</label>
+                <div class="amount-input-wrapper">
+                    <span class="amount-prefix">₹</span>
+                    <input type="text" id="amountInput" class="amount-input" placeholder="0" inputmode="numeric">
+                </div>
+                <!-- Error message placeholder -->
+                <p class="amount-error" id="amountError">Please enter a valid amount</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="modal-actions">
+                <button class="btn btn--secondary" id="cancelBtn">Cancel</button>
+                <button class="btn btn--primary" id="proceedBtn">
+                    <span class="btn-text">Proceed to Pay</span>
+                    <!-- Loading spinner (hidden by default) -->
+                    <span class="btn-spinner">
+                        <svg class="spinner-icon" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                                stroke-dasharray="32" stroke-linecap="round"></circle>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cashfree = Cashfree({
+            mode: "sandbox" // use "production" later
+        });
+
+        (async function loadGoalsIntoModals() {
+            try {
+                const token = localStorage.getItem("accessToken");
+                if (!token) {
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                const res = await fetch("http://localhost:3000/api/dashboard/getUserData", {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                if (res.status === 401) {
+                    toast.error("Session expired. Please login again.");
+                    localStorage.removeItem("accessToken");
+                    setTimeout(() => {
+                        window.location.href = "/login.html";
+                    }, 1500);
+                    return;
+                }
+
+                if (!res.ok) {
+                    toast.error("Failed to load goals. Please try again.");
+                    return;
+                }
+
+                const result = await res.json();
+                const goals = result.data?.goals || [];
+
+                renderGoals(goals);
+
+            } catch (err) {
+                toast.error(err.message || "Unable to load goals");
+            }
+        })();
+
+        function renderGoals(goals) {
+            const container = document.getElementById("goalsList");
+            container.innerHTML = "";
+
+            if (!goals.length) {
+                container.innerHTML = "<p style='color:#b5b5b5'>No goals found</p>";
+                return;
+            }
+
+            goals.forEach((goal, index) => {
+                const current = Number(goal.currentAmount) || 0;
+                const target = Number(goal.targetAmount) || 1;
+
+                const percent = Math.min(
+                    Math.floor((current / target) * 100),
+                    100
+                );
+
+                const card = document.createElement("div");
+                card.className = "goal-card";
+                card.dataset.goalId = goal._id;
+
+                if (index === 0) card.classList.add("goal-card--selected");
+
+                card.innerHTML = `
+      <div class="goal-card-radio">
+        <div class="radio-outer">
+          <div class="radio-inner"></div>
+        </div>
+      </div>
+
+      <div class="goal-card-icon">${goal.icon || "🎯"}</div>
+
+      <div class="goal-card-content">
+        <div class="goal-card-header">
+          <h3 class="goal-card-title">${goal.title}</h3>
+          <span class="goal-card-percentage">${percent}%</span>
+        </div>
+
+        <div class="goal-card-amounts">
+          <span class="goal-current">₹${current.toLocaleString()}</span>
+          <span class="goal-separator">/</span>
+          <span class="goal-target">₹${target.toLocaleString()}</span>
+        </div>
+
+        <div class="goal-progress-track">
+          <div class="goal-progress-bar" style="width:${percent}%"></div>
+        </div>
+      </div>
+    `;
+
+                card.addEventListener("click", () => {
+                    document
+                        .querySelectorAll(".goal-card")
+                        .forEach(c => c.classList.remove("goal-card--selected"));
+
+                    card.classList.add("goal-card--selected");
+                });
+
+                container.appendChild(card);
+            });
+        }
+
+
+        document.getElementById("proceedBtn").addEventListener("click", async () => {
+            const selectedCard = document.querySelector(".goal-card--selected");
+            const amountInput = document.getElementById("amountInput");
+
+            if (!selectedCard) {
+                toast.error("Please select a goal");
+                return
+            }
+
+            const amount = Number(amountInput.value);
+
+            if (!amount || amount <= 0) {
+                toast.error("Please enter a valid amount");
+                return
+            }
+
+            const goalId = selectedCard.dataset.goalId;
+
+            await createDepositOrder(goalId, amount);
+        })
+
+        async function createDepositOrder(goalId, amount) {
+            const token = localStorage.getItem("accessToken");
+            const btn = document.getElementById("proceedBtn");
+
+            try {
+                btn.classList.add("loading");
+
+                const res = await fetch(
+                    `http://localhost:3000/api/v1/pb/goal/deposit/${goalId}`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ amount })
+                    }
+                );
+
+                if (res.status === 401) {
+                    toast.error("Session expired. Please login again.");
+                    localStorage.removeItem("accessToken");
+                    setTimeout(() => {
+                        window.location.href = "/login.html";
+                    }, 1500);
+                    return;
+                }
+
+                const result = await res.json();
+
+                if (!res.ok) {
+                    toast.error(result.message || "Unable to initiate payment");
+                    return;
+                }
+
+                const { paymentSessionId } = result.data;
+
+                
+                cashfree.checkout({
+                    paymentSessionId,
+                    redirectTarget: "_self" 
+                });
+
+            } catch (err) {
+                console.error("Create deposit error:", err);
+                toast.error("Something went wrong while creating payment");
+            } finally {
+                btn.classList.remove("loading");
+            }
+        }
+    </script>
+
+</body>
+
+</html>

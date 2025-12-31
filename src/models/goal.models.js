@@ -38,17 +38,26 @@ const goalSchema = new mongoose.Schema({
         ref: "Wallet",
         required: true
     }
+    ,
+    icon: {
+        type: String,
+        default: "🎯"
+    },
+    category: {
+        type: String,
+        default: "custom"
+    }
 }, { timestamps: true })
 
-goalSchema.methods.isGoalAchieved = function() {
+goalSchema.methods.isGoalAchieved = function () {
     return this.currentAmount >= this.targetAmount;
 }
 
-goalSchema.statics.getActiveGoals = function(userId) {
-    return this.find({user : userId , status : "active"});
+goalSchema.statics.getActiveGoals = function (userId) {
+    return this.find({ user: userId, status: "active" });
 }
 
-goalSchema.index({user : 1})
+goalSchema.index({ user: 1 })
 
 // for pagination of the goal list
 goalSchema.plugin(mongoosePaginate)

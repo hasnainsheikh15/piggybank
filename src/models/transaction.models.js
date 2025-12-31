@@ -24,7 +24,7 @@ const transactionSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ["credit", "deposit"]
+        enum: ["credit", "withdraw"]
     },
 
     amount: {
@@ -50,6 +50,11 @@ const transactionSchema = new mongoose.Schema({
         required : true,
         index : true
     }
+    ,
+    processed: {
+  type: Boolean,
+  default: false
+}
 
 
 }, { timestamps: true })

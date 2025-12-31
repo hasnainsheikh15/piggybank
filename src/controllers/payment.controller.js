@@ -51,8 +51,8 @@ const depositMoney = asyncHandler(async (req, res) => {
         }
         ,
         "order_meta": {
-            "return_url": `http://localhost:3000/api/payment/return?order_id=${orderId}`,
-            "notify_url": "https://cbeca72d34e8.ngrok-free.app/api/payment/webhook",
+            "return_url": `http://localhost:3000/dashboard.html`,
+            "notify_url": "https://e73493eaac11.ngrok-free.app/api/payment/webhook",
             "payment_methods": "cc,dc,upi"
         }
 
@@ -76,12 +76,13 @@ const depositMoney = asyncHandler(async (req, res) => {
         wallet: wallet._id,
         goal: goalId,
         transactionId: "txn" + Date.now(),
-        type: "deposit",
+        type: "credit",
         amount,
         status: "pending",
         description: `Transaction for the gaol : ${goal.title}`,
         date: Date.now(),
-        orderId
+        orderId,
+        processed: false
     })
     return res.status(200).json(
         new ApiResponse(200, "Order created successfully", {
@@ -110,31 +111,42 @@ const cashfreeWebhook = asyncHandler(async (req, res) => {
     //     amountType: typeof amount,
     //   });
 
-    // 1: Only process PAYMENT_SUCCESS_WEBHOOK
-    if (eventType !== "PAYMENT_SUCCESS_WEBHOOK") {
-        console.log("Skipping event because type is not PAYMENT_SUCCESS_WEBHOOK:", eventType);
-        return res.status(200).json({ message: "Ignored: not success event type" });
-    }
-
-    // 2: Only process SUCCESS status
-    if (paymentStatus !== "SUCCESS") {
-        console.log("Skipping event because paymentStatus is not SUCCESS:", paymentStatus);
-        return res.status(200).json({ message: "Ignored: status not success" });
-    }
-
     if (!orderId) {
         console.log("Missing orderId in webhook");
         return res.status(200).json({ message: "Missing order id" });
     }
 
+    // 1: Only process PAYMENT_SUCCESS_WEBHOOK
+    // if (eventType !== "PAYMENT_SUCCESS_WEBHOOK") {
+    //     console.log("Skipping event because type is not PAYMENT_SUCCESS_WEBHOOK:", eventType);
+    //     return res.status(200).json({ message: "Ignored: not success event type" });
+    // }
+
+    // 2: Only process SUCCESS status
+    if (paymentStatus !== "SUCCESS") {
+        await Transaction.findOneAndUpdate(
+      { orderId, status: "pending", processed: false },
+      { status: "failed", processed: true }
+    );
+    return res.status(200).json({ message: "Payment failed" });
+    }
+
+    
     //   console.log("Finding pending transaction for order:", orderId);
 
     // 3: ATOMICALLY mark transaction as completed (idempotent)
     const trx = await Transaction.findOneAndUpdate(
-        { orderId, status: "pending" },
-        { status: "completed" },
-        { new: true }
-    );
+    {
+      orderId,
+      status: "pending",
+      processed: false
+    },
+    {
+      status: "completed",
+      processed: true
+    },
+    { new: true }
+  );
 
     //   console.log("Transaction matched & updated:", trx);
 
@@ -152,10 +164,10 @@ const cashfreeWebhook = asyncHandler(async (req, res) => {
     //     amount,
     //   });
 
-    const walletBefore = await Wallet.findById(trx.wallet);
+    // const walletBefore = await Wallet.findById(trx.wallet);
     //   console.log("Wallet before update:", walletBefore && walletBefore.balance);
 
-    const walletAfter = await Wallet.findByIdAndUpdate(
+     await Wallet.findByIdAndUpdate(
         trx.wallet,
         { $inc: { balance: amount } },
         { new: true }
@@ -165,7 +177,7 @@ const cashfreeWebhook = asyncHandler(async (req, res) => {
     //   const goalBefore = await Goal.findById(trx.goal);
     //   console.log("Goal currentAmount before update:", goalBefore && goalBefore.currentAmount);
 
-    const goalAfter = await Goal.findByIdAndUpdate(
+     await Goal.findByIdAndUpdate(
         trx.goal,
         { $inc: { currentAmount: amount } },
         { new: true }

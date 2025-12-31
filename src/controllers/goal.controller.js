@@ -5,7 +5,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 const createGoal = asyncHandler(async (req, res) => {
-    const { title, targetAmount, dueDate } = req.body;
+    const { title, targetAmount, dueDate , category , icon } = req.body;
 
     if (!title || !targetAmount || !dueDate) {
         throw new ApiError(401, "All the fields are required")
@@ -31,7 +31,9 @@ const createGoal = asyncHandler(async (req, res) => {
         currentAmount: 0,
         dueDate,
         status: "active",
-        wallet : wallet._id
+        wallet : wallet._id,
+        category,
+        icon
     })
 
     wallet.goal = goal._id
@@ -74,23 +76,23 @@ const deleteGoal = asyncHandler(async (req, res) => {
     const { goalId } = req.params
 
     if (!goalId) {
-        throw new ApiError(401, "GoalID is required to be deleted")
+        throw new ApiError(400, "GoalID is required to be deleted")
     }
 
     const goal = await Goal.findOne({ _id: goalId })
 
     if (!goal) {
-        throw new ApiError(401, "Goal is not found or the Goal ID is wrong ")
+        throw new ApiError(400, "Goal is not found or the Goal ID is wrong ")
     }
 
     const wallet = await Wallet.findOne({ goal: goal._id })
 
     if (!wallet) {
-        throw new ApiError(401, "Wallet is not found for that goal")
+        throw new ApiError(400, "Wallet is not found for that goal")
     }
 
     if (wallet.balance > 0) {
-        throw new ApiError(401, "Cannot delete goal,Wallet balance must be 0.")
+        throw new ApiError(400, "Cannot delete goal,Wallet balance must be 0.")
     }
     await wallet.deleteOne()
     await goal.deleteOne()

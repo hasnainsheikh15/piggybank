@@ -5,890 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | PiggyBank</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            cursor: none;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ===== CUSTOM CURSOR ===== */
-        .cursor {
-            position: fixed;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #facc15;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transition: transform 0.1s ease, width 0.2s ease, height 0.2s ease, border-color 0.2s ease;
-            transform: translate(-50%, -50%);
-        }
-
-        .cursor-dot {
-            position: fixed;
-            width: 8px;
-            height: 8px;
-            background: linear-gradient(135deg, #facc15, #eab308);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.6), 0 0 40px rgba(250, 204, 21, 0.3);
-        }
-
-        .cursor-trail {
-            position: fixed;
-            width: 6px;
-            height: 6px;
-            background: rgba(250, 204, 21, 0.5);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9998;
-            transform: translate(-50%, -50%);
-            transition: opacity 0.3s ease;
-        }
-
-        .cursor.hover {
-            width: 50px;
-            height: 50px;
-            border-color: #eab308;
-            background: rgba(250, 204, 21, 0.1);
-        }
-
-        .cursor-glow {
-            position: fixed;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, rgba(250, 204, 21, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9997;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .cursor-glow.active {
-            opacity: 1;
-        }
-
-        /* ===== PARTICLE CANVAS ===== */
-        #particle-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .navbar,
-        .dashboard-container,
-        .mobile-nav {
-            position: relative;
-            z-index: 10;
-        }
-
-        /* ===== TOP NAVIGATION ===== */
-        .navbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 32px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo svg {
-            width: 40px;
-            height: 40px;
-        }
-
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #facc15, #eab308);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-        }
-
-        .greeting {
-            color: #b5b5b5;
-            font-size: 0.95rem;
-        }
-
-        .greeting strong {
-            color: #ffffff;
-        }
-
-        .notification-btn {
-            position: relative;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: none;
-            transition: all 0.3s ease;
-        }
-
-        .notification-btn:hover {
-            background: rgba(250, 204, 21, 0.1);
-            border-color: rgba(250, 204, 21, 0.3);
-        }
-
-        .notification-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: #b5b5b5;
-        }
-
-        .info-value.unverified {
-    color: #ef4444;
-}
-        .notification-badge {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 8px;
-            height: 8px;
-            background: linear-gradient(135deg, #facc15, #eab308);
-            border-radius: 50%;
-        }
-
-        .user-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #facc15, #eab308);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1rem;
-            color: #0a0a0a;
-            cursor: none;
-            transition: all 0.3s ease;
-        }
-
-        .user-avatar:hover {
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
-            transform: scale(1.05);
-        }
-
-        /* ===== MAIN CONTAINER ===== */
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 32px;
-        }
-
-        /* ===== GLASS CARD BASE ===== */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            backdrop-filter: blur(20px);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .glass-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(250, 204, 21, 0.2);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
-                0 0 40px rgba(250, 204, 21, 0.08);
-        }
-
-        /* ===== DASHBOARD GRID ===== */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 350px;
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        /* ===== WALLET BALANCE CARD ===== */
-        .wallet-card {
-            grid-column: span 2;
-            padding: 32px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .wallet-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(250, 204, 21, 0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .wallet-label {
-            color: #b5b5b5;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .wallet-balance {
-            font-size: 3.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffffff, #b5b5b5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-        }
-
-        .wallet-balance .currency {
-            font-size: 2rem;
-            opacity: 0.7;
-        }
-
-        .wallet-change {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: #22c55e;
-            font-size: 0.9rem;
-            margin-bottom: 24px;
-        }
-
-        .wallet-actions {
-            display: flex;
-            gap: 16px;
-        }
-
-        /* ===== BUTTONS ===== */
-        .btn-ghost {
-            padding: 14px 32px;
-            border: 2px solid rgba(250, 204, 21, 0.5);
-            background: transparent;
-            color: #facc15;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: none;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-ghost::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #facc15, #eab308);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: -1;
-        }
-
-        .btn-ghost:hover {
-            color: #0a0a0a;
-            border-color: #facc15;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.3);
-        }
-
-        .btn-ghost:hover::before {
-            opacity: 1;
-        }
-
-        .btn-secondary {
-            padding: 14px 32px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-        }
-
-        /* ===== USER INFO CARD ===== */
-        .user-info-card {
-            padding: 28px;
-        }
-
-        .user-info-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .user-info-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #facc15, #eab308);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.4rem;
-            color: #0a0a0a;
-        }
-
-        .user-info-name {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .user-info-email {
-            color: #b5b5b5;
-            font-size: 0.85rem;
-        }
-
-        .user-info-details {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            color: #b5b5b5;
-            font-size: 0.85rem;
-        }
-
-        .info-value {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .info-value.verified {
-            color: #22c55e;
-        }
-
-        /* ===== QUICK ACTIONS ===== */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .action-btn {
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            cursor: none;
-        }
-
-        .action-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            background: rgba(250, 204, 21, 0.1);
-            border: 1px solid rgba(250, 204, 21, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn:hover .action-icon {
-            background: linear-gradient(135deg, #facc15, #eab308);
-            transform: scale(1.1);
-            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.3);
-        }
-
-        .action-label {
-            color: #ffffff;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        /* ===== BOTTOM GRID ===== */
-        .bottom-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        /* ===== SAVINGS GOALS ===== */
-        .goals-section {
-            padding: 28px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .see-all {
-            color: #facc15;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            cursor: none;
-        }
-
-        .see-all:hover {
-            text-decoration: underline;
-        }
-
-        .goals-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .goal-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            transition: all 0.3s ease;
-            cursor: none;
-        }
-
-        .goal-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(250, 204, 21, 0.2);
-            transform: translateX(4px);
-        }
-
-        .goal-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background: rgba(250, 204, 21, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .goal-info {
-            flex: 1;
-        }
-
-        .goal-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .goal-amount {
-            color: #b5b5b5;
-            font-size: 0.85rem;
-        }
-
-        .goal-progress-container {
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .goal-progress-bar {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .goal-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #facc15, #eab308);
-            border-radius: 10px;
-            transition: width 0.5s ease;
-        }
-
-        .goal-percentage {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #facc15;
-        }
-
-        /* ===== TRANSACTIONS ===== */
-        .transactions-section {
-            padding: 28px;
-        }
-
-        .transactions-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .transaction-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            cursor: none;
-        }
-
-        .transaction-item:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.08);
-        }
-
-        .transaction-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .transaction-icon.credit {
-            background: rgba(34, 197, 94, 0.15);
-        }
-
-        .transaction-icon.debit {
-            background: rgba(239, 68, 68, 0.15);
-        }
-
-        .transaction-info {
-            flex: 1;
-        }
-
-        .transaction-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            margin-bottom: 4px;
-        }
-
-        .transaction-date {
-            color: #b5b5b5;
-            font-size: 0.8rem;
-        }
-
-        .transaction-amount {
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-        .transaction-amount.credit {
-            color: #22c55e;
-        }
-
-        .transaction-amount.debit {
-            color: #ef4444;
-        }
-
-        /* ===== ANALYTICS MINI CHART ===== */
-        .analytics-section {
-            grid-column: span 2;
-            padding: 28px;
-        }
-
-        .chart-container {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            height: 180px;
-            padding: 20px 0;
-            gap: 12px;
-        }
-
-        .chart-bar-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-        }
-
-        .chart-bar {
-            width: 100%;
-            max-width: 50px;
-            border-radius: 8px 8px 0 0;
-            background: linear-gradient(180deg, #facc15, #eab308);
-            transition: all 0.3s ease;
-            position: relative;
-            cursor: none;
-        }
-
-        .chart-bar:hover {
-            box-shadow: 0 -10px 30px rgba(250, 204, 21, 0.3);
-            transform: scaleY(1.05);
-            transform-origin: bottom;
-        }
-
-        .chart-bar::before {
-            content: attr(data-value);
-            position: absolute;
-            top: -28px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #b5b5b5;
-            font-size: 0.75rem;
-            font-weight: 600;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .chart-bar:hover::before {
-            opacity: 1;
-            color: #facc15;
-        }
-
-        .chart-label {
-            color: #b5b5b5;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        /* ===== MOBILE RESPONSIVE ===== */
-        @media (max-width: 1200px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .wallet-card {
-                grid-column: span 2;
-            }
-
-            .user-info-card {
-                grid-column: span 2;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .navbar {
-                padding: 12px 20px;
-            }
-
-            .greeting {
-                display: none;
-            }
-
-            .dashboard-container {
-                padding: 20px;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .wallet-card,
-            .user-info-card {
-                grid-column: span 1;
-            }
-
-            .quick-actions {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .bottom-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .analytics-section {
-                grid-column: span 1;
-            }
-
-            .wallet-balance {
-                font-size: 2.5rem;
-            }
-
-            .wallet-actions {
-                flex-direction: column;
-            }
-
-            .btn-ghost,
-            .btn-secondary {
-                width: 100%;
-                text-align: center;
-            }
-        }
-
-        @media (max-width: 768px) {
-
-            /* Hide custom cursor on mobile/touch devices */
-            .cursor,
-            .cursor-dot,
-            .cursor-trail,
-            .cursor-glow {
-                display: none !important;
-            }
-
-            * {
-                cursor: auto;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .navbar {
-                padding: 12px 16px;
-            }
-
-            .logo-text {
-                font-size: 1.2rem;
-            }
-
-            .logo svg {
-                width: 32px;
-                height: 32px;
-            }
-
-            .dashboard-container {
-                padding: 16px;
-            }
-
-            .wallet-card,
-            .goals-section,
-            .transactions-section,
-            .analytics-section {
-                padding: 20px;
-            }
-
-            .wallet-balance {
-                font-size: 2rem;
-            }
-
-            .quick-actions {
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
-            }
-
-            .action-btn {
-                padding: 16px;
-            }
-
-            .action-icon {
-                width: 48px;
-                height: 48px;
-                font-size: 1.2rem;
-            }
-
-            .chart-container {
-                height: 140px;
-            }
-        }
-
-        /* ===== MOBILE BOTTOM NAV ===== */
-        .mobile-nav {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(10, 10, 10, 0.95);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            padding: 12px 0;
-            z-index: 100;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-nav {
-                display: flex;
-                justify-content: space-around;
-            }
-
-            .dashboard-container {
-                padding-bottom: 100px;
-            }
-        }
-
-        .mobile-nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: #b5b5b5;
-            text-decoration: none;
-            font-size: 0.7rem;
-            transition: all 0.3s ease;
-            cursor: none;
-        }
-
-        .mobile-nav-item.active,
-        .mobile-nav-item:hover {
-            color: #facc15;
-        }
-
-        .mobile-nav-item svg {
-            width: 24px;
-            height: 24px;
-        }
-
-        .mobile-nav-item.active svg {
-            fill: #facc15;
-        }
-    </style>
+    <link rel="stylesheet" href="dashboard.css">
 </head>
 
 <body>
@@ -1028,6 +145,56 @@
                 <span class="notification-badge"></span>
             </button>
             <div class="user-avatar"></div>
+            <!-- User Avatar Dropdown Menu -->
+            <!-- User Avatar Dropdown Menu -->
+            <div class="avatar-dropdown" id="avatarDropdown">
+                <a href="#" class="avatar-dropdown-item">
+                    <svg class="avatar-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span class="avatar-dropdown-text">My Profile</span>
+                </a>
+                <a href="#" class="avatar-dropdown-item">
+                    <svg class="avatar-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <span class="avatar-dropdown-text">Security</span>
+                </a>
+                <a href="#" class="avatar-dropdown-item">
+                    <svg class="avatar-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
+                        <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+                    </svg>
+                    <span class="avatar-dropdown-text">Wallet / Transactions</span>
+                </a>
+                <a href="#" class="avatar-dropdown-item">
+                    <svg class="avatar-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="2" />
+                    </svg>
+                    <span class="avatar-dropdown-text">My Goals</span>
+                </a>
+                <div class="avatar-dropdown-divider"></div>
+                <a href="#" class="avatar-dropdown-item avatar-dropdown-logout" id="logoutBtn">
+                    <svg class="avatar-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" x2="9" y1="12" y2="12" />
+                    </svg>
+                    <span class="avatar-dropdown-text">Log Out</span>
+                </a>
+            </div>
+
+
         </div>
     </nav>
 
@@ -1046,7 +213,7 @@
                     +₹0 this month
                 </div>
                 <div class="wallet-actions">
-                    <button class="btn-ghost">+ Add Money</button>
+                    <button class="btn-ghost" id="add-money-btn">+ Add Money</button>
                     <button class="btn-secondary">Withdraw</button>
                 </div>
             </div>
@@ -1084,7 +251,7 @@
 
         <!-- Quick Actions -->
         <div class="quick-actions">
-            <a href="#" class="glass-card action-btn">
+            <a href="goalModel.html" class="glass-card action-btn">
                 <div class="action-icon">💰</div>
                 <span class="action-label">Add Money</span>
             </a>
@@ -1092,11 +259,11 @@
                 <div class="action-icon">🏧</div>
                 <span class="action-label">Withdraw</span>
             </a>
-            <a href="#" class="glass-card action-btn">
+            <a href="createGoal.html" class="glass-card action-btn">
                 <div class="action-icon">🎯</div>
                 <span class="action-label">Create Goal</span>
             </a>
-            <a href="#" class="glass-card action-btn">
+            <a href="#analytics" class="glass-card action-btn">
                 <div class="action-icon">📊</div>
                 <span class="action-label">Analytics</span>
             </a>
@@ -1123,7 +290,7 @@
             </div>
 
             <!-- Analytics Mini Chart -->
-            <div class="glass-card analytics-section">
+            <div class="glass-card analytics-section" id="analytics">
                 <div class="section-header">
                     <h2 class="section-title">Monthly Savings</h2>
                     <a href="#" class="see-all">View Details →</a>
@@ -1189,6 +356,34 @@
         </a>
     </nav>
 
+    <div id="toast-container"></div>
+    <div class="confirm-overlay hidden" id="confirmOverlay">
+        <div class="confirm-modal">
+            <h3 class="confirm-title">Delete Goal?</h3>
+            <p class="confirm-text">
+                This action cannot be undone. Are you sure you want to delete this goal?
+            </p>
+
+            <div class="confirm-actions">
+                <button class="btn-secondary" id="cancelDelete">Cancel</button>
+                <button class="btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="confirm-overlay hidden" id="logoutConfirmOverlay">
+        <div class="confirm-modal">
+            <h3 class="confirm-title">Log out?</h3>
+            <p class="confirm-text">
+                Are you sure you want to log out of your account?
+            </p>
+            <div class="confirm-actions">
+                <button class="btn-secondary" id="cancelLogout">Cancel</button>
+                <button class="btn-danger" id="confirmLogout">Log out</button>
+            </div>
+        </div>
+    </div>
     <!-- Particle Effect Script -->
     <script>
         const canvas = document.getElementById('particle-canvas');
@@ -1353,193 +548,160 @@
 
     <!-- Custom Cursor Script -->
     <script>
-        // Custom Cursor Animation
-        const cursor = document.querySelector('.cursor');
-        const cursorDot = document.querySelector('.cursor-dot');
-        const cursorGlow = document.querySelector('.cursor-glow');
+        (() => {
+            const cursor = document.querySelector('.cursor');
+            const dot = document.querySelector('.cursor-dot');
+            const glow = document.querySelector('.cursor-glow');
 
-        // Trail particles
-        const trailParticles = [];
-        const maxTrailParticles = 15;
+            if (!cursor || !dot || !glow) return;
 
-        let mouseX = 0;
-        let mouseY = 0;
-        let cursorX = 0;
-        let cursorY = 0;
-        let dotX = 0;
-        let dotY = 0;
-        let isMoving = false;
-        let moveTimeout;
-
-        // Create trail particle
-        function createTrailParticle(x, y) {
-            const particle = document.createElement('div');
-            particle.className = 'cursor-trail';
-            particle.style.left = x + 'px';
-            particle.style.top = y + 'px';
-            document.body.appendChild(particle);
-
-            trailParticles.push({
-                element: particle,
-                x: x,
-                y: y,
-                life: 1,
-                size: Math.random() * 4 + 2
-            });
-
-            // Limit trail particles
-            if (trailParticles.length > maxTrailParticles) {
-                const oldParticle = trailParticles.shift();
-                if (oldParticle.element.parentNode) {
-                    oldParticle.element.parentNode.removeChild(oldParticle.element);
-                }
-            }
-        }
-
-        // Update trail particles
-        function updateTrailParticles() {
-            for (let i = trailParticles.length - 1; i >= 0; i--) {
-                const particle = trailParticles[i];
-                particle.life -= 0.03;
-                particle.size *= 0.95;
-
-                if (particle.life <= 0) {
-                    if (particle.element.parentNode) {
-                        particle.element.parentNode.removeChild(particle.element);
-                    }
-                    trailParticles.splice(i, 1);
-                } else {
-                    particle.element.style.opacity = particle.life * 0.8;
-                    particle.element.style.width = particle.size + 'px';
-                    particle.element.style.height = particle.size + 'px';
-                }
-            }
-        }
-
-        // Mouse move handler
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-
-            isMoving = true;
-            cursorGlow.classList.add('active');
-
-            // Create trail particles only when moving
-            if (Math.random() > 0.5) {
-                createTrailParticle(mouseX, mouseY);
+            // Disable on touch devices
+            if (window.matchMedia('(pointer: coarse)').matches) {
+                cursor.remove();
+                dot.remove();
+                glow.remove();
+                return;
             }
 
-            clearTimeout(moveTimeout);
-            moveTimeout = setTimeout(() => {
-                isMoving = false;
-                cursorGlow.classList.remove('active');
-            }, 100);
-        });
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
 
-        // Hover effects for interactive elements
-        const interactiveElements = document.querySelectorAll('a, button, .glass-card, .goal-card, .transaction-item, .chart-bar');
+            const outerEase = 0.15;
+            const dotEase = 0.35;
 
-        interactiveElements.forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                cursor.classList.add('hover');
+            document.addEventListener('mousemove', e => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                glow.classList.add('active');
             });
 
-            el.addEventListener('mouseleave', () => {
-                cursor.classList.remove('hover');
+            document.addEventListener('mouseleave', () => {
+                cursor.style.opacity = '0';
+                dot.style.opacity = '0';
+                glow.style.opacity = '0';
             });
-        });
 
-        // Smooth cursor animation
-        function animateCursor() {
-            // Smooth follow for outer cursor
-            const easingOuter = 0.15;
-            cursorX += (mouseX - cursorX) * easingOuter;
-            cursorY += (mouseY - cursorY) * easingOuter;
+            document.addEventListener('mouseenter', () => {
+                cursor.style.opacity = '1';
+                dot.style.opacity = '1';
+                glow.style.opacity = '1';
+            });
 
-            // Faster follow for dot
-            const easingDot = 0.25;
-            dotX += (mouseX - dotX) * easingDot;
-            dotY += (mouseY - dotY) * easingDot;
+            // Hover effects
+            document.querySelectorAll(
+                'a, button, .glass-card, .goal-card, .transaction-item, .chart-bar'
+            ).forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+            });
 
-            cursor.style.left = cursorX + 'px';
-            cursor.style.top = cursorY + 'px';
+            function animate() {
+                cursorX += (mouseX - cursorX) * outerEase;
+                cursorY += (mouseY - cursorY) * outerEase;
 
-            cursorDot.style.left = dotX + 'px';
-            cursorDot.style.top = dotY + 'px';
+                cursor.style.transform =
+                    `translate3d(${cursorX - 10}px, ${cursorY - 10}px, 0)`;
 
-            cursorGlow.style.left = mouseX + 'px';
-            cursorGlow.style.top = mouseY + 'px';
+                dot.style.transform =
+                    `translate3d(${mouseX - 4}px, ${mouseY - 4}px, 0)`;
 
-            // Update trail particles
-            updateTrailParticles();
+                glow.style.transform =
+                    `translate3d(${mouseX - 40}px, ${mouseY - 40}px, 0)`;
 
-            requestAnimationFrame(animateCursor);
-        }
+                requestAnimationFrame(animate);
+            }
 
-        // Hide cursor when leaving window
-        document.addEventListener('mouseleave', () => {
-            cursor.style.opacity = '0';
-            cursorDot.style.opacity = '0';
-            cursorGlow.style.opacity = '0';
-        });
-
-        document.addEventListener('mouseenter', () => {
-            cursor.style.opacity = '1';
-            cursorDot.style.opacity = '1';
-            cursorGlow.style.opacity = '1';
-        });
-
-        // Start cursor animation
-        animateCursor();
-
+            animate();
+        })();
     </script>
+
 
     <!-- Dashboard Data Script -->
     <script>
-        (async function () {
-            try {
-                // 1. Check token
-                const token = localStorage.getItem("accessToken");
 
-                if (!token) {
-                    window.location.href = "/login.html";
-                    return;
-                }
+        //   const params = new URLSearchParams(window.location.search);
+        //   const isPaymentReturn = params.get("payment") === "success";
 
-                // 2. Fetch dashboard data
-                const res = await fetch("http://localhost:3000/api/dashboard/getUserData", {
-                    method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                });
+        document.getElementById("add-money-btn").addEventListener("click", () => {
+            window.location.href = "/goalModel.html"
+        })
+        async function loadDashboard() {
 
-                // 3. Handle auth / server errors
-                if (!res.ok) {
-                    localStorage.removeItem("accessToken");
-                    window.location.href = "/login.html";
-                    return;
-                }
-
-                const result = await res.json();
-                const data = result.data;
-
-                // 4. Render dashboard
-                console.log("Dashboard API result:", result);
-                console.log("Dashboard data:", data);
-
-                updateUser(data.user);
-                updateWallet(data.wallet);
-                renderTransactions(data.transactions);
-                renderGoals(data.goals);
-                renderAnalytics(data.monthlyAnalytics);
-
-            } catch (error) {
-                console.error("Dashboard load failed:", error);
-                alert("Something went wrong. Please try again.");
+            const token = localStorage.getItem("accessToken");
+            if (!token) {
+                window.location.href = "/login.html";
+                return;
             }
-        })();
 
+
+            const res = await fetch("http://localhost:3000/api/dashboard/getUserData", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            // 3. Handle auth / server errors
+            if (res.status === 401) {
+                localStorage.removeItem("accessToken");
+                window.location.href = "/login.html";
+                return;
+            }
+
+            if (!res.ok) {
+                throw new Error("Failed to load dashboard");
+            }
+
+            const result = await res.json();
+            const data = result.data;
+
+            // 4. Render dashboard
+            updateUser(data.user);
+            updateWallet(data.totalBalance);
+            renderTransactions(data.transactions);
+            renderGoals(data.goals);
+            renderAnalytics(data.monthlyAnalytics || []);
+
+            const latestTxn = data.transactions?.[0];
+            const lastToastTxnId = localStorage.getItem("lastToastTxnId");
+
+            if (latestTxn && latestTxn._id !== lastToastTxnId) {
+                if (latestTxn.status === "completed") {
+                    showToast("Payment successful 🎉", "success");
+                    localStorage.setItem("lastToastTxnId", latestTxn._id);
+                }
+                if (latestTxn.status === "failed") {
+                    showToast("Payment failed ❌", "error");
+                    localStorage.setItem("lastToastTxnId", latestTxn._id);
+                }
+            }
+
+        }
+
+        //   async function loadDashboardWithRetry() {
+        //     try {
+        //       // First load (always)
+        //       await loadDashboard();
+
+        //       // Retry only if redirected after payment
+        //       if (isPaymentReturn) {
+        //         setTimeout(async () => {
+        //           await loadDashboard();
+        //           showToast("Payment successful 🎉", "success");
+
+        //           // Clean URL
+        //           window.history.replaceState({}, "", "/dashboard.html");
+        //         }, 2500);
+        //       }
+        //     } catch (error) {
+        //       console.error("Dashboard load failed:", error);
+        //       showToast("Something went wrong. Please try again.", "error");
+        //     }
+        //   }
+
+
+        //   loadDashboardWithRetry();
+        loadDashboard();
 
         // ---------------- USER ----------------
         function updateUser(user) {
@@ -1560,73 +722,78 @@
 
             const statusEl = document.querySelector(".info-value.verified");
 
-    if (user.isVerified) {
-        statusEl.textContent = "✓ Verified";
-        statusEl.classList.add("verified");
-        statusEl.classList.remove("unverified");
-    } else {
-        statusEl.textContent = "✕ Not Verified";
-        statusEl.classList.add("unverified");
-        statusEl.classList.remove("verified");
-    }
+            if (user.isVerified) {
+                statusEl.textContent = "✓ Verified";
+                statusEl.classList.add("verified");
+                statusEl.classList.remove("unverified");
+            } else {
+                statusEl.textContent = "✕ Not Verified";
+                statusEl.classList.add("unverified");
+                statusEl.classList.remove("verified");
+            }
         }
-
 
         // ---------------- WALLET ----------------
-        function updateWallet(wallet) {
+        function updateWallet(totalBalance) {
             document.querySelector(".wallet-balance").innerHTML =
-                `<span class="currency">₹</span>${wallet.balance.toLocaleString()}`;
+                `<span class="currency">₹</span>${totalBalance.toLocaleString()}`;
         }
-
 
         // ---------------- TRANSACTIONS ----------------
         function renderTransactions(transactions) {
+
             const container = document.querySelector(".transactions-list");
             container.innerHTML = "";
 
-            if (transactions.length === 0) {
+            if (!transactions.length) {
                 container.innerHTML = "<p>No transactions yet</p>";
                 return;
             }
 
-            // const container = document.querySelector(".transactions-list");
-            // container.innerHTML = "";
-
             transactions.forEach(tx => {
                 const item = document.createElement("div");
                 item.className = "transaction-item";
+                let icon = "⏳";
+                let sign = "";
+
+                if (tx.status === "completed") {
+                    icon = tx.type === "credit" ? "💵" : "🛒";
+                    sign = tx.type === "credit" ? "+" : "-";
+                }
+
+                if (tx.status === "failed") {
+                    icon = "❌";
+                }
 
                 item.innerHTML = `
-          <div class="transaction-icon ${tx.type}">
-            ${tx.type === "credit" ? "💵" : "🛒"}
-          </div>
-          <div class="transaction-info">
-            <h4 class="transaction-title">${tx.title}</h4>
-            <p class="transaction-date">
-              ${new Date(tx.createdAt).toDateString()}
-            </p>
-          </div>
-          <span class="transaction-amount ${tx.type}">
-            ${tx.type === "credit" ? "+" : "-"}₹${tx.amount}
-          </span>
-        `;
+      <div class="transaction-icon ${tx.status}">
+        ${icon}
+      </div>
+      <div class="transaction-info">
+        <h4 class="transaction-title">${tx.description}</h4>
+        <p class="transaction-date">
+          ${new Date(tx.createdAt).toDateString()}
+        </p>
+        <p class="transaction-status">${tx.status.toUpperCase()}</p>
+      </div>
+      <span class="transaction-amount ${tx.status}">
+        ${sign}₹${tx.amount}
+      </span>
+    `;
 
                 container.appendChild(item);
             });
         }
-
 
         // ---------------- GOALS ----------------
         function renderGoals(goals) {
             const container = document.querySelector(".goals-grid");
             container.innerHTML = "";
 
-            if (goals.length === 0) {
+            if (!goals.length) {
                 container.innerHTML = "<p>No goals created yet</p>";
                 return;
             }
-
-            
 
             goals.forEach(goal => {
                 const percent = Math.floor(
@@ -1635,66 +802,302 @@
 
                 const card = document.createElement("div");
                 card.className = "goal-card";
+                card.dataset.goalId = goal._id;
 
                 card.innerHTML = `
-          <div class="goal-info">
-            <h4 class="goal-name">${goal.title}</h4>
-            <p class="goal-amount">
-              ₹${goal.currentAmount} / ₹${goal.targetAmount}
-            </p>
-            <div class="goal-progress-bar">
-              <div class="goal-progress-fill" style="width:${percent}%"></div>
-            </div>
+        <div class="goal-icon">${goal.icon || "🎯"}</div>
+        <div class="goal-info">
+          <h4 class="goal-name">${goal.title}</h4>
+          <p class="goal-amount">
+            ₹${goal.currentAmount} / ₹${goal.targetAmount}
+          </p>
+          <div class="goal-progress-bar">
+            <div class="goal-progress-fill" style="width:${percent}%"></div>
           </div>
+        </div>
+
+        <div class="goal-actions">
           <span class="goal-percentage">${percent}%</span>
-        `;
+          <button
+            class="goal-delete-btn"
+            title="Delete goal"
+            onclick="handleDeleteGoal('${goal._id}')"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </div>
+`;
 
                 container.appendChild(card);
             });
         }
 
+        // ---------------- DELETE GOAL ----------------
+        async function handleDeleteGoal(goalId) {
+            const shouldDelete = await confirmDeleteGoal();
+            if (!shouldDelete) return;
+
+            const token = localStorage.getItem("accessToken");
+            if (!token) {
+                window.location.href = "/login.html";
+                return;
+            }
+
+            try {
+                const res = await fetch(
+                    `http://localhost:3000/api/v1/pb/goal/deleteGoal/${goalId}`,
+                    {
+                        method: "DELETE",
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                const result = await res.json();
+
+                if (res.status === 401) {
+                    localStorage.removeItem("accessToken");
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+
+                if (!res.ok) {
+                    showToast(result.message || "Failed to delete goal", "error");
+                    return;
+                }
+
+                document
+                    .querySelector(`[data-goal-id="${goalId}"]`)
+                    ?.remove();
+
+                showToast("Goal deleted successfully", "success");
+
+            } catch (err) {
+                console.log(err.message);
+                showToast("Something went wrong while deleting the goal", "error");
+            }
+        }
 
         // ---------------- ANALYTICS ----------------
         function renderAnalytics(analytics) {
-            const container = document.querySelector(".analytics-lists");
-            container.innerHTML = "";
-
-            if (analytics.length === 0) {
-                container.innerHTML = "<p>No analytics yet</p>";
-                return;
-            }
-
             const bars = document.querySelectorAll(".chart-bar");
             const labels = document.querySelectorAll(".chart-label");
 
-            if (!analytics || analytics.length === 0) {
-                bars.forEach(bar => bar.style.height = "0%");
-                labels.forEach(label => label.textContent = "");
-                return;
-            }
+            // Reset
+            bars.forEach(bar => {
+                bar.style.height = "0%";
+                bar.removeAttribute("data-value");
+            });
+            labels.forEach(label => (label.textContent = ""));
 
-            const totals = analytics.map(item => item.total);
-            const max = Math.max(...totals);
+            if (!analytics.length) return;
 
-            analytics.forEach((item, index) => {
-                const value = item.total;
-                const height = (value / max) * 100;
+            // Sort analytics by date ASC
+            analytics.sort((a, b) => {
+                const d1 = new Date(a._id.year, a._id.month - 1);
+                const d2 = new Date(b._id.year, b._id.month - 1);
+                return d1 - d2;
+            });
 
+            // Take LAST 6 months only
+            const recentAnalytics = analytics.slice(-6);
+
+            const max = Math.max(...recentAnalytics.map(a => a.total));
+
+            recentAnalytics.forEach((item, index) => {
+                const height = (item.total / max) * 100;
                 const date = new Date(item._id.year, item._id.month - 1);
-                const monthLabel = date.toLocaleString("en-US", { month: "short" });
 
                 bars[index].style.height = `${height}%`;
-                bars[index].dataset.value = `₹${value}`;
-                labels[index].textContent = monthLabel;
+                bars[index].dataset.value = `₹${item.total}`;
+                labels[index].textContent =
+                    date.toLocaleString("en-US", { month: "short" });
             });
         }
 
+
+
+        // ---------------- TOAST ----------------
+        function showToast(message, type = "success") {
+            const container = document.getElementById("toast-container");
+
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // ---------------- CONFIRM DELETE ----------------
+
+        function confirmDeleteGoal() {
+            return new Promise(resolve => {
+                const overlay = document.getElementById("confirmOverlay");
+                const cancelBtn = document.getElementById("cancelDelete");
+                const confirmBtn = document.getElementById("confirmDelete");
+
+                overlay.classList.remove("hidden");
+
+                const cleanup = result => {
+                    overlay.classList.add("hidden");
+                    cancelBtn.onclick = null;
+                    confirmBtn.onclick = null;
+                    resolve(result);
+                };
+
+                cancelBtn.onclick = () => cleanup(false);
+                confirmBtn.onclick = () => cleanup(true);
+            });
+        }
+        // Avatar Dropdown Toggle
+        (function () {
+            const avatar = document.querySelector('.user-avatar');
+            const dropdown = document.getElementById('avatarDropdown');
+
+            if (!avatar || !dropdown) return;
+
+            // Toggle dropdown on avatar click
+            avatar.addEventListener('click', function (e) {
+                e.stopPropagation();
+                dropdown.classList.toggle('avatar-dropdown--open');
+            });
+
+            function closeAvatarDropdown() {
+                dropdown.classList.remove('avatar-dropdown--open');
+            }
+
+            // Close on outside click
+            document.addEventListener('click', function (e) {
+                if (!dropdown.contains(e.target) && !avatar.contains(e.target)) {
+                    dropdown.classList.remove('avatar-dropdown--open');
+                }
+            });
+
+
+
+            // Close on ESC key
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    dropdown.classList.remove('avatar-dropdown--open');
+                }
+            });
+
+
+            // Keyboard accessibility for dropdown items
+            const items = dropdown.querySelectorAll('.avatar-dropdown-item');
+            items.forEach((item, index) => {
+                item.setAttribute('tabindex', '0');
+
+                item.addEventListener('keydown', function (e) {
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        items[(index + 1) % items.length].focus();
+                    }
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        items[(index - 1 + items.length) % items.length].focus();
+                    }
+                    if (e.key === 'Enter') {
+                        item.click();
+                    }
+                });
+            });
+
+
+            const dropdownItems = dropdown.querySelectorAll('.avatar-dropdown-item');
+
+            dropdownItems[0]?.addEventListener('click', function (e) {
+                e.preventDefault();
+                closeAvatarDropdown();
+                document.querySelector('.user-info-card')
+                    ?.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            dropdownItems[1]?.addEventListener('click', function (e) {
+                e.preventDefault();
+                closeAvatarDropdown();
+                window.location.href = '/security.html';
+            });
+
+            dropdownItems[2]?.addEventListener('click', function (e) {
+                e.preventDefault();
+                closeAvatarDropdown();
+                document.querySelector('.transactions-section')
+                    ?.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            dropdownItems[3]?.addEventListener('click', function (e) {
+                e.preventDefault();
+                closeAvatarDropdown();
+                document.querySelector('.goals-section')
+                    ?.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            const logoutBtn = document.getElementById("logoutBtn");
+            const logoutOverlay = document.getElementById("logoutConfirmOverlay");
+            const cancelLogoutBtn = document.getElementById("cancelLogout");
+            const confirmLogoutBtn = document.getElementById("confirmLogout");
+
+            function openLogoutConfirm() {
+                logoutOverlay.classList.remove("hidden");
+            }
+
+            function closeLogoutConfirm() {
+                logoutOverlay.classList.add("hidden");
+            }
+
+            // Step 1: Click logout → show confirm modal
+            logoutBtn?.addEventListener("click", function (e) {
+                e.preventDefault();
+                closeAvatarDropdown(); // close avatar menu
+                openLogoutConfirm();
+            });
+
+            // Step 2: Cancel logout
+            cancelLogoutBtn.addEventListener("click", function () {
+                closeLogoutConfirm();
+            });
+
+            // Step 3: Confirm logout
+            confirmLogoutBtn.addEventListener("click", async function () {
+                closeLogoutConfirm();
+
+                try {
+                    const token = localStorage.getItem("accessToken");
+
+                    await fetch("http://localhost:3000/api/v1/pb/users/logout", {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json"
+                        },
+                        credentials: "include"
+                    });
+                } catch (err) {
+                    console.error("Logout API failed:", err);
+                } finally {
+                    // Frontend cleanup always happens
+                    localStorage.removeItem("accessToken");
+
+                    showToast("Logged out successfully", "success");
+
+                    setTimeout(() => {
+                        window.location.href = "/login.html";
+                    }, 1000);
+                }
+            });
+        })();
+
     </script>
-
-
-
-
-
 
 </body>
 

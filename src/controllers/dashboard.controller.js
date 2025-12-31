@@ -19,10 +19,24 @@ const getUserData = asyncHandler(async (req, res) => {
 
     const balance = wallet ? wallet.balance : 0;
 
-    const transactions = await Transaction.find({ user: userId }).sort({ createdAt: -1 }).
-        limit(6).select("type description amount createdAt");
+    const result = await Wallet.aggregate([
+  {
+    $match: { user: userId }
+  },
+  {
+    $group: {
+      _id: null,
+      totalBalance: { $sum: "$balance" }
+    }
+  }
+]);
 
-    const goals = await Goal.find({ user: userId }).sort({ createdAt: -1 }).select("title targetAmount currentAmount");
+const totalBalance = result[0]?.totalBalance || 0;
+
+    const transactions = await Transaction.find({ user: userId }).sort({ createdAt: -1 }).
+        limit(6).select("type description amount createdAt status ");
+
+    const goals = await Goal.find({ user: userId }).sort({ createdAt: -1 }).select("title targetAmount currentAmount icon");
 
     // MOnthly Analytics 
 
@@ -35,6 +49,7 @@ const getUserData = asyncHandler(async (req, res) => {
             $match: {
                 user: userId,
                 type: "credit",
+                status: "completed",     
                 createdAt: { $gte: sixMonthAgo }
             }
         },
@@ -68,7 +83,8 @@ const getUserData = asyncHandler(async (req, res) => {
             },
             transactions,
             goals,
-            monthlyAnalytics
+            monthlyAnalytics,
+            totalBalance
         })
     )
 

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Savings Goal | PiggyBank</title>
+    <meta name="description" content="Create a new savings goal and start saving automatically with PiggyBank.">
+    <link rel="stylesheet" href="createGoal.css">
+</head>
+
+<body>
+    <div class="background-blur"></div>
+
+    <main class="container">
+        <div class="glass-card">
+            <!-- Header -->
+            <header class="card-header">
+                <h1 class="title">Create a New Savings Goal</h1>
+                <p class="subtitle">Set a target and start saving automatically.</p>
+            </header>
+
+            <!-- Form -->
+            <form class="goal-form" id="goalForm">
+                <!-- Goal Name -->
+                <div class="form-group">
+                    <label for="goalName" class="form-label">Goal Name <span class="required">*</span></label>
+                    <input type="text" id="goalName" class="form-input"
+                        placeholder="e.g. MacBook Pro, Goa Trip, Emergency Fund" required>
+                    <span class="error-message" id="goalNameError">Please enter a goal name</span>
+                </div>
+
+                <!-- Target Amount -->
+                <div class="form-group">
+                    <label for="targetAmount" class="form-label">Target Amount <span class="required">*</span></label>
+                    <div class="input-with-prefix">
+                        <span class="input-prefix">₹</span>
+                        <input type="number" id="targetAmount" class="form-input with-prefix"
+                            placeholder="Enter target amount" min="1" required>
+                    </div>
+                    <span class="error-message" id="targetAmountError">Please enter a valid amount</span>
+                </div>
+
+                <!-- Initial Deposit -->
+                <div class="form-group">
+                    <label for="initialDeposit" class="form-label">Initial Deposit (Optional)</label>
+                    <div class="input-with-prefix">
+                        <span class="input-prefix">₹</span>
+                        <input type="number" id="initialDeposit" class="form-input with-prefix"
+                            placeholder="Optional initial deposit" min="0">
+                    </div>
+                    <span class="helper-text">You can add money later as well.</span>
+                </div>
+
+                <!-- Target Date -->
+                <div class="form-group">
+                    <label for="targetDate" class="form-label">Target Date (Optional)</label>
+                    <input type="date" id="targetDate" class="form-input">
+                </div>
+
+                <!-- Goal Icon / Category -->
+                <div class="form-group">
+                    <label class="form-label">Goal Icon / Category</label>
+                    <div class="icon-grid">
+                        <button type="button" class="icon-card" data-category="electronics">
+                            <span class="icon-emoji">💻</span>
+                            <span class="icon-label">Electronics</span>
+                        </button>
+                        <button type="button" class="icon-card" data-category="travel">
+                            <span class="icon-emoji">✈️</span>
+                            <span class="icon-label">Travel</span>
+                        </button>
+                        <button type="button" class="icon-card" data-category="education">
+                            <span class="icon-emoji">🎓</span>
+                            <span class="icon-label">Education</span>
+                        </button>
+                        <button type="button" class="icon-card" data-category="home">
+                            <span class="icon-emoji">🏠</span>
+                            <span class="icon-label">Home</span>
+                        </button>
+                        <button type="button" class="icon-card" data-category="vehicle">
+                            <span class="icon-emoji">🚗</span>
+                            <span class="icon-label">Vehicle</span>
+                        </button>
+                        <button type="button" class="icon-card selected" data-category="custom">
+                            <span class="icon-emoji">🎯</span>
+                            <span class="icon-label">Custom</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Preview -->
+                <div class="preview-section">
+                    <label class="form-label">Live Goal Preview</label>
+                    <div class="preview-card">
+                        <div class="preview-icon" id="previewIcon">🎯</div>
+                        <div class="preview-details">
+                            <h3 class="preview-name" id="previewName">Your Goal</h3>
+                            <p class="preview-amount">
+                                <span id="previewCurrent">₹0</span> / <span id="previewTarget">₹0</span>
+                            </p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-label">0% saved</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="button-group">
+                    <button type="submit" class="btn-primary" id="submitBtn" disabled>
+                        <span class="btn-text">Create Goal</span>
+                        <span class="btn-loader hidden">
+                            <span class="spinner"></span>
+                            Creating…
+                        </span>
+                    </button>
+                    <button type="button" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+
+            <!-- Success State -->
+            <div class="success-card hidden" id="successCard">
+                <div class="success-icon">✅</div>
+                <h2 class="success-title">Goal Created Successfully</h2>
+                <p class="success-message">Redirecting to dashboard...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Form elements
+        const form = document.getElementById('goalForm');
+        const goalNameInput = document.getElementById('goalName');
+        const targetAmountInput = document.getElementById('targetAmount');
+        const initialDepositInput = document.getElementById('initialDeposit');
+        const submitBtn = document.getElementById('submitBtn');
+        const successCard = document.getElementById('successCard');
+        const iconCards = document.querySelectorAll('.icon-card');
+
+        // Preview elements
+        const previewName = document.getElementById('previewName');
+        const previewIcon = document.getElementById('previewIcon');
+        const previewCurrent = document.getElementById('previewCurrent');
+        const previewTarget = document.getElementById('previewTarget');
+        const progressFill = document.getElementById('progressFill');
+
+        // Validate form
+        function validateForm() {
+            const isValid = goalNameInput.value.trim() !== '' &&
+                targetAmountInput.value > 0;
+            submitBtn.disabled = !isValid;
+        }
+
+        // Update preview
+        function updatePreview() {
+            previewName.textContent = goalNameInput.value || 'Your Goal';
+            previewTarget.textContent = '₹' + (targetAmountInput.value || '0');
+
+            const initial = parseFloat(initialDepositInput.value) || 0;
+            const target = parseFloat(targetAmountInput.value) || 0;
+            previewCurrent.textContent = '₹' + initial;
+
+            const percentage = target > 0 ? Math.min((initial / target) * 100, 100) : 0;
+            progressFill.style.width = percentage + '%';
+            document.querySelector('.progress-label').textContent = Math.round(percentage) + '% saved';
+        }
+
+        // Event listeners
+        goalNameInput.addEventListener('input', () => {
+            validateForm();
+            updatePreview();
+        });
+
+        targetAmountInput.addEventListener('input', () => {
+            validateForm();
+            updatePreview();
+        });
+
+        initialDepositInput.addEventListener('input', updatePreview);
+
+        // Icon selection
+        iconCards.forEach(card => {
+            card.addEventListener('click', () => {
+                iconCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                previewIcon.textContent = card.querySelector('.icon-emoji').textContent;
+            });
+        });
+
+        // Form submit
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const token = localStorage.getItem('accessToken');
+
+            if (!token) {
+                window.location.href = '/login.html'
+                return
+            }
+
+
+            // Show loading
+            submitBtn.querySelector('.btn-text').classList.add('hidden');
+            submitBtn.querySelector('.btn-loader').classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            // Simulate API call
+            try {
+                const selectedIcon = document.querySelector('.icon-card.selected');
+                const category = selectedIcon
+                    ? selectedIcon.dataset.category
+                    : "custom";
+
+                const payload = {
+                    title: goalNameInput.value.trim(),
+                    targetAmount: Number(targetAmountInput.value),
+                    dueDate: document.getElementById("targetDate").value || null,
+                    category,
+                    icon : selectedIcon.querySelector('.icon-emoji').textContent
+                }
+
+                const res = await fetch('http://localhost:3000/api/v1/pb/goal/createGoal', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                })
+
+                if (res.status === 401) {
+                    localStorage.removeItem('accessToken');
+                    window.location.href = '/login.html';
+                    return
+                }
+
+                const result = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(result.message || 'Failed to create goal');
+                }
+
+                form.classList.add('hidden');
+                successCard.classList.remove('hidden');
+
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html'
+                }, 2000)
+
+            } catch (error) {
+                alert(error.message || "Something went wrong");
+                submitBtn.disabled = false;
+                submitBtn.querySelector('.btn-text').classList.remove('hidden');
+                submitBtn.querySelector('.btn-loader').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>

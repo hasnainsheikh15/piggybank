@@ -37,4 +37,14 @@ app.use("/api/dashboard",dashboardRouter)
 app.get("/", (req, res) => {
     res.sendFile("index.html", { root: "./public" });
 });
+
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+
+    res.status(statusCode).json({
+        success: false,
+        message: err.message || "Internal Server Error",
+        errors: err.errors || []
+    });
+});
 export { app }; 

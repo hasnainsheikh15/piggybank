@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PiggyBank - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 48px 40px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(250, 204, 21, 0.3);
+        }
+
+        .logo svg {
+            width: 36px;
+            height: 36px;
+            fill: #0a0a0a;
+        }
+
+        .app-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .app-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            padding-right: 48px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 15px;
+            color: #ffffff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .form-input:focus {
+            border-color: #facc15;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.15);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password svg {
+            width: 20px;
+            height: 20px;
+            stroke: rgba(255, 255, 255, 0.5);
+            transition: stroke 0.2s ease;
+        }
+
+        .toggle-password:hover svg {
+            stroke: rgba(255, 255, 255, 0.8);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #0a0a0a;
+            margin-top: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(250, 204, 21, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(10, 10, 10, 0.3);
+            border-top-color: #0a0a0a;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        .submit-btn.loading .btn-text {
+            display: none;
+        }
+
+        .submit-btn.loading .spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .register-link a {
+            color: #facc15;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .register-link a:hover {
+            color: #fde047;
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 36px 24px;
+                border-radius: 20px;
+            }
+
+            .app-title {
+                font-size: 24px;
+            }
+
+            .logo {
+                width: 56px;
+                height: 56px;
+            }
+
+            .logo svg {
+                width: 32px;
+                height: 32px;
+            }
+        }
+    </style>
+    <script src="toast.js"></script>
+</head>
+
+<body>
+    <div class="login-card">
+        <div class="logo-container">
+            <div class="logo">
+                <svg class="pig-icon" width="40" height="40" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <!-- Main body gradient -->
+                        <linearGradient id="pigBodyGradient" x1="10" y1="15" x2="70" y2="65"
+                            gradientUnits="userSpaceOnUse">
+                            <stop offset="0" stop-color="#fef9c3" />
+                            <stop offset="0.3" stop-color="#facc15" />
+                            <stop offset="1" stop-color="#ca8a04" />
+                        </linearGradient>
+
+                        <!-- Belly / underside gradient -->
+                        <linearGradient id="pigBellyGradient" x1="20" y1="40" x2="60" y2="70"
+                            gradientUnits="userSpaceOnUse">
+                            <stop offset="0" stop-color="#eab308" />
+                            <stop offset="1" stop-color="#854d0e" />
+                        </linearGradient>
+
+                        <!-- Snout gradient -->
+                        <linearGradient id="pigSnoutGradient" x1="30" y1="45" x2="50" y2="60"
+                            gradientUnits="userSpaceOnUse">
+                            <stop offset="0" stop-color="#fef3c7" />
+                            <stop offset="1" stop-color="#facc15" />
+                        </linearGradient>
+
+                        <!-- Leg gradient -->
+                        <linearGradient id="pigLegGradient" x1="0" y1="0" x2="0" y2="10" gradientUnits="userSpaceOnUse">
+                            <stop offset="0" stop-color="#facc15" />
+                            <stop offset="1" stop-color="#854d0e" />
+                        </linearGradient>
+
+                        <!-- Coin gradient -->
+                        <linearGradient id="coinGradient" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#fef9c3" />
+                            <stop offset="0.4" stop-color="#facc15" />
+                            <stop offset="1" stop-color="#b45309" />
+                        </linearGradient>
+
+                        <!-- Soft drop shadow -->
+                        <filter id="pigShadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="black" flood-opacity="0.45" />
+                        </filter>
+
+                        <!-- Eye shine gradient -->
+                        <radialGradient id="eyeHighlight" cx="0.3" cy="0.3" r="0.7">
+                            <stop offset="0" stop-color="#ffffff" stop-opacity="0.9" />
+                            <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+                        </radialGradient>
+                    </defs>
+
+                    <!-- Ground shadow ellipse -->
+                    <ellipse cx="40" cy="64" rx="22" ry="6" fill="black" opacity="0.25" />
+
+                    <!-- Pig body group with shadow -->
+                    <g filter="url(#pigShadow)">
+                        <!-- Main body -->
+                        <ellipse cx="40" cy="40" rx="22" ry="17" fill="url(#pigBodyGradient)" />
+
+                        <!-- Belly shading -->
+                        <ellipse cx="40" cy="44" rx="18" ry="12" fill="url(#pigBellyGradient)" opacity="0.55" />
+
+                        <!-- Left ear -->
+                        <path d="M26 20 C24 16, 26 12, 30 13 C34 14, 35 18, 33 21 Z" fill="#facc15" stroke="#854d0e"
+                            stroke-width="0.7" />
+                        <!-- Right ear -->
+                        <path d="M54 20 C56 16, 54 12, 50 13 C46 14, 45 18, 47 21 Z" fill="#facc15" stroke="#854d0e"
+                            stroke-width="0.7" />
+
+                        <!-- Left cheek bulge -->
+                        <ellipse cx="22" cy="38" rx="6" ry="8" fill="#facc15" />
+                        <!-- Right cheek bulge -->
+                        <ellipse cx="58" cy="38" rx="6" ry="8" fill="#facc15" />
+
+                        <!-- Snout -->
+                        <ellipse cx="40" cy="47" rx="10" ry="7" fill="url(#pigSnoutGradient)" stroke="#854d0e"
+                            stroke-width="0.8" />
+                        <!-- Nostrils -->
+                        <circle cx="36.5" cy="47" r="1.4" fill="#1a1a1a" opacity="0.85" />
+                        <circle cx="43.5" cy="47" r="1.4" fill="#1a1a1a" opacity="0.85" />
+
+                        <!-- Eye -->
+                        <circle cx="31" cy="36" r="3.2" fill="#111111" />
+                        <!-- Eye highlight -->
+                        <circle cx="30.3" cy="35.3" r="1.3" fill="url(#eyeHighlight)" />
+
+                        <!-- Smile / mouth -->
+                        <path d="M34 51 C37 54, 43 54, 46 51" fill="none" stroke="#1a1a1a" stroke-width="1.2"
+                            stroke-linecap="round" />
+
+                        <!-- Back slot for coins -->
+                        <rect x="32" y="25" width="16" height="3" rx="1.5" fill="#111827" opacity="0.9" />
+                        <!-- Highlight on slot -->
+                        <rect x="33" y="25.3" width="6" height="1.2" rx="0.6" fill="#fef9c3" opacity="0.4" />
+
+                        <!-- Front leg -->
+                        <rect x="29" y="51" width="6" height="9" rx="2" fill="url(#pigLegGradient)" />
+                        <!-- Back leg -->
+                        <rect x="45" y="51" width="6" height="9" rx="2" fill="url(#pigLegGradient)" />
+
+                        <!-- Tiny highlight on body (top left) -->
+                        <ellipse cx="32" cy="32" rx="10" ry="7" fill="#fef9c3" opacity="0.22" />
+                    </g>
+
+                    <!-- Coins coming out of slot -->
+                    <g>
+                        <!-- Coin 1 -->
+                        <circle cx="52" cy="18" r="5" fill="url(#coinGradient)" />
+                        <circle cx="52" cy="18" r="5" fill="none" stroke="#fef9c3" stroke-width="0.5" opacity="0.5" />
+                        <!-- Coin 2 -->
+                        <circle cx="46" cy="10" r="4" fill="url(#coinGradient)" opacity="0.9" />
+                        <!-- Coin 3 (behind) -->
+                        <circle cx="57" cy="11" r="3.5" fill="url(#coinGradient)" opacity="0.7" />
+                    </g>
+                </svg>
+            </div>
+            <h1 class="app-title">PiggyBank</h1>
+            <p class="app-subtitle">Welcome back. Log in to manage your savings goals.</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">
+                        <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <span class="btn-text">Log In</span>
+                <div class="spinner"></div>
+            </button>
+        </form>
+
+        <p class="register-link">
+            Don't have an account? <a href="register.html">Register</a>
+        </p>
+    </div>
+
+    <script>
+
+        const token = localStorage.getItem("accessToken");
+
+        if (token) {
+            window.location.href = "/dashboard.html";
+        }
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.innerHTML = `
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.innerHTML = `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function submitLogin(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                toast.error("Please enter all the fields")
+                return;
+            }
+
+            const btn = this.querySelector('.submit-btn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/v1/pb/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                })
+
+                const result = await res.json();
+
+                if (!res.ok) {
+                    toast.error(result.message)
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    return
+                }
+
+                localStorage.setItem('accessToken', result.data.accessToken);
+
+                toast.success("Login successful ! Redirecting...")
+
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html'
+                }, 1200)
+            } catch (error) {
+                toast.error("Unable to connect to server");
+                btn.classList.remove("loading");
+                btn.disabled = false;
+            }
+
+
+        });
+    </script>
+</body>
+
+</html>
